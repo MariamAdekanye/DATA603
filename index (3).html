@@ -1,0 +1,838 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DATA 603 Revision Guide</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+/* Layout: notebook-style study guide. Sticky contents rail on the left, one reading column on the right. Highlighter yellow marks the key idea in each step. */
+:root{
+  --bg:#f6f8fb; --surface:#ffffff; --fg:#1b2433; --muted:#5a6578; --line:#dde3ec;
+  --accent:#2457c5; --accent-soft:#e7eefc; --mark:#fff1a8; --code-bg:#eef2f8; --code-fg:#1b2433;
+  --good:#1f7a4d; --good-soft:#e3f4ea; --bad:#b4372f; --bad-soft:#fbe7e5;
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --body:"Source Sans 3",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11161f; --surface:#171e2a; --fg:#e4e9f2; --muted:#9aa6b8; --line:#2a3445;
+  --accent:#7ea4ff; --accent-soft:#1d2a45; --mark:#5a4d12; --code-bg:#0d1219; --code-fg:#dfe6f1;
+  --good:#6fd39e; --good-soft:#15301f; --bad:#ff8f86; --bad-soft:#3a1b19; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11161f; --surface:#171e2a; --fg:#e4e9f2; --muted:#9aa6b8; --line:#2a3445;
+  --accent:#7ea4ff; --accent-soft:#1d2a45; --mark:#5a4d12; --code-bg:#0d1219; --code-fg:#dfe6f1;
+  --good:#6fd39e; --good-soft:#15301f; --bad:#ff8f86; --bad-soft:#3a1b19; color-scheme:dark}
+
+html{scroll-behavior:smooth;scroll-padding-top:calc(env(safe-area-inset-top,0px) + 72px)}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.6}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--surface)}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+.shell{display:grid;grid-template-columns:280px minmax(0,1fr);min-height:100vh}
+
+/* Contents rail */
+.rail{position:sticky;top:env(safe-area-inset-top,0px);height:calc(100vh - env(safe-area-inset-top,0px));overflow-y:auto;background:var(--surface);border-right:1px solid var(--line);padding-block:24px 40px;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:20px}
+.brand{font-family:var(--display);font-weight:700;font-size:22px;line-height:1.15;letter-spacing:-.01em}
+.brand small{display:block;font-family:var(--body);font-weight:400;font-size:14px;color:var(--muted);letter-spacing:0;margin-top:4px}
+.filter{width:100%;margin-block:18px 8px;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);font:inherit;font-size:15px}
+.navgroup{margin-top:18px}
+.navgroup h2{font-family:var(--body);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 6px}
+.navgroup ol{list-style:none;margin:0;padding:0;display:grid;gap:1px}
+.navgroup a{display:flex;gap:10px;align-items:baseline;padding:5px 8px;border-radius:6px;text-decoration:none;color:var(--fg);font-size:15px;line-height:1.35}
+.navgroup a:hover{background:var(--accent-soft)}
+.navgroup a.active{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.navgroup .n{font-family:var(--mono);font-size:12px;color:var(--muted);min-width:24px;font-variant-numeric:tabular-nums}
+.navgroup a.active .n{color:var(--accent)}
+.nomatch{font-size:14px;color:var(--muted);margin-top:12px}
+
+/* Mobile top bar */
+.topbar{display:none}
+@media (max-width:860px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .topbar{display:flex;position:sticky;top:env(safe-area-inset-top,0px);z-index:20;align-items:center;justify-content:space-between;gap:12px;background:var(--surface);border-bottom:1px solid var(--line);padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .topbar strong{font-family:var(--display);font-size:18px}
+  .topbar button{font:inherit;font-size:15px;font-weight:600;padding:7px 14px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
+  .rail{position:fixed;inset:0;z-index:25;height:auto;border-right:0;transform:translateX(-100%);transition:transform .2s ease;padding-top:calc(env(safe-area-inset-top,0px) + 64px);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .rail.open{transform:none}
+  html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 64px)}
+}
+@media (prefers-reduced-motion:reduce){.rail{transition:none}}
+
+/* Reading column */
+main{padding-block:40px 120px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.col{max-width:760px;margin:0 auto}
+.hero h1{font-family:var(--display);font-weight:700;font-size:clamp(32px,5vw,46px);line-height:1.05;letter-spacing:-.02em;margin:0;text-wrap:balance}
+.hero p{color:var(--muted);font-size:18px;max-width:62ch}
+.howto{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:20px}
+.howto div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;font-size:15px}
+.howto b{display:block;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:2px}
+
+.part{margin-top:64px;padding-top:24px;border-top:2px solid var(--fg)}
+.part .eyebrow{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--accent)}
+.part h2{font-family:var(--display);font-weight:700;font-size:34px;line-height:1.1;letter-spacing:-.015em;margin:4px 0 8px;text-wrap:balance}
+.part > p{color:var(--muted);margin:0}
+
+section.step{margin-top:44px}
+section.step h3{font-family:var(--display);font-weight:600;font-size:25px;line-height:1.2;margin:0 0 10px;display:flex;gap:12px;align-items:baseline;text-wrap:balance}
+section.step h3 .n{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--accent);background:var(--accent-soft);padding:2px 8px;border-radius:6px;flex:none}
+h4{font-size:17px;font-weight:700;margin:22px 0 6px}
+p{margin:10px 0}
+ul,ol{padding-left:22px}
+li{margin:4px 0}
+mark{background:var(--mark);color:inherit;padding:0 3px;border-radius:3px}
+.key{border-left:4px solid var(--accent);background:var(--surface);padding:10px 16px;border-radius:0 8px 8px 0;margin:16px 0}
+.key strong:first-child{color:var(--accent)}
+.warn{border-left:4px solid var(--bad);background:var(--bad-soft);padding:10px 16px;border-radius:0 8px 8px 0;margin:16px 0}
+.warn strong:first-child{color:var(--bad)}
+
+code{font-family:var(--mono);font-size:.86em;background:var(--code-bg);color:var(--code-fg);padding:1px 5px;border-radius:4px}
+pre{background:var(--code-bg);color:var(--code-fg);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;font-size:14px;line-height:1.55;margin:12px 0}
+pre code{background:none;padding:0;font-size:inherit}
+pre .c{color:var(--muted)}
+pre.out{background:transparent;border-style:dashed}
+pre.out::before{content:"output";display:block;font-family:var(--body);font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:4px}
+
+.lines{margin:12px 0;display:grid;gap:8px}
+.lines div{display:grid;grid-template-columns:minmax(0,max-content) minmax(0,1fr);gap:6px 14px;align-items:baseline}
+.lines code{white-space:nowrap}
+@media (max-width:600px){.lines div{grid-template-columns:minmax(0,1fr)}.lines code{white-space:normal;word-break:break-word}}
+
+.tbl{overflow-x:auto;margin:14px 0;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;background:var(--bg)}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+
+.vs{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:14px 0}
+.vs > div{border-radius:10px;padding:10px 14px;min-width:0}
+.vs .ok{background:var(--good-soft)}
+.vs .no{background:var(--bad-soft)}
+.vs .lbl{display:block;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.vs .ok .lbl{color:var(--good)} .vs .no .lbl{color:var(--bad)}
+.vs pre{background:var(--surface);margin:6px 0 4px}
+
+details.check{margin-top:18px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+details.check summary{cursor:pointer;padding:10px 16px;font-weight:700;list-style:none;display:flex;justify-content:space-between;gap:10px}
+details.check summary::-webkit-details-marker{display:none}
+details.check summary::after{content:"Show";font-weight:600;font-size:14px;color:var(--accent)}
+details.check[open] summary::after{content:"Hide"}
+details.check .body{padding:0 16px 14px;border-top:1px solid var(--line)}
+details.check ol{padding-left:20px;margin:10px 0 0}
+details.check li{margin-bottom:10px}
+details.check .a{display:block;color:var(--muted);margin-top:2px}
+details.check .a::before{content:"Answer: ";font-weight:700;color:var(--good)}
+
+.mistakes{display:grid;gap:10px;margin-top:14px}
+.mistakes > div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px}
+.mistakes b{display:block}
+.mistakes span{color:var(--muted);font-size:15px}
+
+.flow{display:grid;gap:8px;counter-reset:flow;margin:14px 0}
+.flow > div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px 10px 52px;position:relative}
+.flow > div::before{counter-increment:flow;content:counter(flow);position:absolute;left:14px;top:10px;width:26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-family:var(--mono);font-weight:600;font-size:13px;display:grid;place-items:center}
+.flow span{display:block;color:var(--muted);font-size:15px}
+
+.katex{font-size:1.05em}
+.katex-display{overflow-x:auto;overflow-y:hidden;padding:4px 0;margin:12px 0}
+footer{margin-top:80px;color:var(--muted);font-size:14px;border-top:1px solid var(--line);padding-top:16px}
+.totop{display:inline-block;margin-top:10px;font-size:14px}
+</style>
+<style>*{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+
+<header class="topbar">
+  <strong>DATA 603</strong>
+  <button type="button" id="menuBtn" aria-controls="rail" aria-expanded="false">Contents</button>
+</header>
+
+<div class="shell">
+<nav class="rail" id="rail" aria-label="Contents">
+  <div class="brand">DATA 603 Revision Guide<small>Multiple linear regression in R, step by step</small></div>
+  <label for="navFilter" style="position:absolute;left:-9999px">Filter topics</label>
+  <input class="filter" id="navFilter" type="search" placeholder="Find a topic, e.g. RSE, partial F" autocomplete="off">
+
+  <div class="navgroup">
+    <h2>Start here</h2>
+    <ol><li><a href="#start"><span class="n">→</span>How to use this guide</a></li></ol>
+  </div>
+  <div class="navgroup">
+    <h2>Lecture 1 · Regression</h2>
+    <ol>
+      <li><a href="#s1"><span class="n">1.1</span>Simple regression: three models</a></li>
+      <li><a href="#s2"><span class="n">1.2</span>Sums of squares, R², MSE</a></li>
+      <li><a href="#s3"><span class="n">1.3</span>Advertising: one medium at a time</a></li>
+      <li><a href="#s4"><span class="n">1.4</span>The multiple regression model</a></li>
+      <li><a href="#s5"><span class="n">1.5</span>Least squares &amp; the design matrix</a></li>
+      <li><a href="#s6"><span class="n">1.6</span>Interpreting coefficients</a></li>
+      <li><a href="#s7"><span class="n">1.7</span>Confidence intervals for β</a></li>
+      <li><a href="#s8"><span class="n">1.8</span>p-values, α and errors</a></li>
+      <li><a href="#s9"><span class="n">1.9</span>Global F-test &amp; ANOVA table</a></li>
+      <li><a href="#s10"><span class="n">1.10</span>Sequential SS in aov()</a></li>
+      <li><a href="#s11"><span class="n">1.11</span>Individual t-tests</a></li>
+      <li><a href="#s12"><span class="n">1.12</span>The partial F-test</a></li>
+      <li><a href="#s13"><span class="n">1.13</span>R², adjusted R², RSE</a></li>
+      <li><a href="#s14"><span class="n">1.14</span>Prediction intervals</a></li>
+      <li><a href="#s15"><span class="n">1.15</span>Extrapolation</a></li>
+    </ol>
+  </div>
+  <div class="navgroup">
+    <h2>Practice problems</h2>
+    <ol>
+      <li><a href="#p1"><span class="n">P1</span>Insect biomass: units</a></li>
+      <li><a href="#p2"><span class="n">P2</span>Condos: fit &amp; CIs</a></li>
+      <li><a href="#p3"><span class="n">P3</span>Condos: F-test &amp; t-tests</a></li>
+      <li><a href="#p4"><span class="n">P4</span>Condos: dropping bedrooms</a></li>
+      <li><a href="#p5"><span class="n">P5</span>Still to do</a></li>
+    </ol>
+  </div>
+  <div class="navgroup">
+    <h2>Quick reference</h2>
+    <ol>
+      <li><a href="#workflow"><span class="n">R1</span>The modelling workflow</a></li>
+      <li><a href="#cheat"><span class="n">R2</span>R cheat sheet</a></li>
+      <li><a href="#formulas"><span class="n">R3</span>Formula sheet</a></li>
+      <li><a href="#mistakes"><span class="n">R4</span>Mistakes to avoid</a></li>
+      <li><a href="#errata"><span class="n">R5</span>Corrections to the notes</a></li>
+    </ol>
+  </div>
+  <p class="nomatch" id="noMatch" hidden>No topic matches that word. Try a shorter one.</p>
+</nav>
+
+<main>
+<div class="col">
+
+<!-- ============ START ============ -->
+<section class="hero" id="start">
+  <h1>Everything from DATA 603 so far, one step at a time</h1>
+  <p>Lecture 1 covers multiple linear regression: fitting a model, testing it, comparing models and predicting. Each step explains the idea and the R code, then ends with a <em>Check yourself</em> box. Try the questions before you open the answers.</p>
+  <div class="howto">
+    <div><b>Jump around</b>Use the contents list, or type a word like <code>adjusted</code> into the search box to find it.</div>
+    <div><b>Highlighted text</b><mark>Yellow</mark> marks the one idea to remember from each step.</div>
+    <div><b>Last-minute review</b>Go straight to the <a href="#workflow">workflow</a>, <a href="#formulas">formula sheet</a> and <a href="#mistakes">mistakes to avoid</a>.</div>
+  </div>
+</section>
+
+<!-- ============ LECTURE 1 ============ -->
+<div class="part" id="lecture1">
+  <div class="eyebrow">Lecture 1</div>
+  <h2>Multiple linear regression</h2>
+  <p>The toddler height example, the Advertising dataset (200 markets) and first-order models with quantitative predictors.</p>
+</div>
+
+<section class="step" id="s1">
+  <h3><span class="n">1.1</span>Simple regression: three versions of "the model"</h3>
+  <p>We have pairs \((x_i, y_i)\) and want a straight line describing how \(Y\) changes with \(X\). \(X\) is the <strong>predictor</strong> (independent, explanatory variable). \(Y\) is the <strong>response</strong> (dependent variable).</p>
+  <div class="tbl"><table>
+    <tr><th>Expression</th><th>What it is</th></tr>
+    <tr><td>\(Y = \beta_0 + \beta_1 X + \epsilon\)</td><td><strong>Population model.</strong> Describes each individual observation, scatter included. The β's are <strong>true but unknown</strong>.</td></tr>
+    <tr><td>\(E(Y) = \beta_0 + \beta_1 X\)</td><td><strong>Regression equation.</strong> The <em>average</em> Y at a given X. ε disappears because \(E(\epsilon) = 0\).</td></tr>
+    <tr><td>\(\hat{Y} = \hat\beta_0 + \hat\beta_1 X\)</td><td><strong>Estimated model.</strong> The \(\hat\beta\)'s are <strong>calculated from our sample</strong> by least squares.</td></tr>
+  </table></div>
+  <p>\(\beta_0\) is the intercept (Y when X = 0), \(\beta_1\) is the slope (change in Y per 1-unit increase in X), and \(\epsilon\) is everything affecting Y that isn't X.</p>
+  <h4>Toddler example (12 toddlers, age 18–29 months)</h4>
+\[\widehat{Height} = 60.25 + 0.848 \times Age\]
+  <p>For each extra month of age, <strong>predicted (average)</strong> height increases by about 0.85 cm. The intercept, 60.25 cm at age 0, has no practical meaning: no toddler in the data is close to 0 months.</p>
+  <div class="key"><strong>Remember:</strong> <mark>β is the true unknown value; β̂ is our estimate from the sample.</mark> We need the population model to say what we're trying to learn, and the estimated model is what we can actually compute.</div>
+  <details class="check"><summary>Check yourself</summary><div class="body"><ol>
+    <li>Interpret the 0.85 in plain English.<span class="a">For each extra month of age, predicted (average) height goes up by about 0.85 cm. Say "on average": the line describes the average toddler, not any one child.</span></li>
+    <li>Why shouldn't this model predict a 6-month-old's height?<span class="a">The data only cover 18–29 months, so 6 months is <strong>extrapolation</strong>. Babies grow much faster in their first year, so the same line probably doesn't hold there.</span></li>
+  </ol></div></details>
+</section>
+
+<section class="step" id="s2">
+  <h3><span class="n">1.2</span>Sums of squares, R² and MSE</h3>
+  <p>Take any data point and picture three vertical distances:</p>
+  <div class="tbl"><table>
+    <tr><th>Name</th><th>Formula</th><th>Measures</th></tr>
+    <tr><td><strong>SST</strong> (total)</td><td>\(\sum (y_i - \bar y)^2\)</td><td>How far the points are from the <strong>mean</strong>: total variation in Y</td></tr>
+    <tr><td><strong>SSR</strong> (regression)</td><td>\(\sum (\hat y_i - \bar y)^2\)</td><td>How far the <strong>line</strong> is from the mean: variation the model explains</td></tr>
+    <tr><td><strong>SSE</strong> (error)</td><td>\(\sum (y_i - \hat y_i)^2\)</td><td>How far the points are from the <strong>line</strong>: variation left unexplained</td></tr>
+  </table></div>
+\[SST = SSR + SSE\]
+  <p><strong>BI analogy:</strong> if your only "model" were <code>AVG(Height)</code> (80.175 cm here), SST measures how wrong that flat prediction is. The regression line removes part of the error (SSR), and what's left is SSE.</p>
+  <h4>R², the coefficient of determination</h4>
+\[R^2 = \frac{SSR}{SST} = 1 - \frac{SSE}{SST}\]
+  <p>R² is the proportion of the variation <strong>in Y</strong> explained by the model. For the toddlers: SST = 118.2, SSE = 15.4, SSR = 102.8, so R² = 0.87. <em>"87% of the variation in height is explained by age."</em></p>
+  <div class="vs">
+    <div class="ok"><span class="lbl">Say this</span>"75% of the variation in height is explained by the model."</div>
+    <div class="no"><span class="lbl">Not this</span>"75% of the model is explained by the variation in age."</div>
+  </div>
+  <h4>MSE, the estimate of the error variance</h4>
+\[MSE = \frac{SSE}{n-2}\]
+  <p>We divide by \(n-2\) because two parameters (\(\beta_0, \beta_1\)) were estimated, and each uses up one degree of freedom. That makes MSE an <strong>unbiased</strong> estimate of \(\text{Var}(\epsilon)\). With p predictors the rule becomes \(n - p - 1\).</p>
+  <div class="key"><strong>Remember:</strong> <mark>SST = SSR + SSE, and R² = SSR / SST is the share of the variation in Y that the model explains.</mark></div>
+  <details class="check"><summary>Check yourself</summary><div class="body"><ol>
+    <li>SST = 200 and SSE = 50. Find SSR and R², and interpret R².<span class="a">SSR = 150 and R² = 0.75. 75% of the variation in Y is explained by the model; the other 25% is unexplained.</span></li>
+    <li>A model has 3 predictors and n = 50. What do you divide SSE by to get MSE?<span class="a">\(n - p - 1 = 50 - 3 - 1 = 46\).</span></li>
+    <li>Is R² the correlation coefficient?<span class="a">No. The correlation is r (between −1 and 1). R² is the coefficient of determination. In simple regression only, R² = r².</span></li>
+  </ol></div></details>
+</section>
+
+<section class="step" id="s3">
+  <h3><span class="n">1.3</span>Advertising: one medium at a time</h3>
+  <p>200 markets. Response <code>sale</code> is sales in thousands of units. Predictors <code>tv</code>, <code>radio</code> and <code>newspaper</code> are advertising budgets in thousands of dollars.</p>
+<pre><code>Advertising = read.table("https://raw.githubusercontent.com/DanikaLipman/DATA603/main/Advertising.txt",
+                         header = TRUE, sep = "\t")
+summary(lm(sale ~ tv, data = Advertising))
+confint(lm(sale ~ tv, data = Advertising))</code></pre>
+  <div class="tbl"><table>
+    <tr><th>Model</th><th>Equation</th><th class="num">r</th><th class="num">F (1, 198)</th><th class="num">p</th><th>95% CI for slope</th></tr>
+    <tr><td>TV</td><td>7.03 + 0.0475·TV</td><td class="num">0.78</td><td class="num">312.1</td><td class="num">≈ 0</td><td>(0.0422, 0.0528)</td></tr>
+    <tr><td>Radio</td><td>9.31 + 0.2025·Radio</td><td class="num">0.58</td><td class="num">98.42</td><td class="num">≈ 0</td><td>(0.1622, 0.2427)</td></tr>
+    <tr><td>Newspaper</td><td>12.35 + 0.0547·News</td><td class="num">0.23</td><td class="num">10.89</td><td class="num">0.001</td><td>(0.0220, 0.0874)</td></tr>
+  </table></div>
+  <p>Each model tests \(H_0: \beta_1 = 0\) (no linear relationship) against \(H_a: \beta_1 \neq 0\). Worked for newspaper:</p>
+\[F = \frac{MSR}{MSE} = \frac{282.34/1}{5134.805/198} = 10.89\]
+  <p>The df are (1, 198): 1 predictor on top, \(n - 2 = 198\) underneath. On their own, all three media look significant.</p>
+  <h4>Interpreting with units</h4>
+  <p>TV slope 0.0475: <em>every extra $1,000 on TV is <strong>associated with</strong> about 47.5 more units sold, on average.</em> This is observational data, so say "associated with", not "causes".</p>
+  <h4>The problem</h4>
+  <p>Markets that spend more on radio also tend to spend more on newspaper; the predictors are <strong>correlated</strong>. Radio really drives sales, so the newspaper-only model gives newspaper credit for radio's effect. Newspaper acts as a <strong>stand-in</strong> for radio.</p>
+  <div class="key"><strong>Remember:</strong> <mark>a one-predictor model can't separate overlapping effects.</mark> Multiple regression can, because it estimates each effect while holding the others constant.</div>
+  <details class="check"><summary>Check yourself</summary><div class="body"><ol>
+    <li>Why does each simple F-test have df (1, 198)?<span class="a">1 = the number of predictors. 198 = 200 observations minus the 2 estimated parameters (β₀ and β₁).</span></li>
+    <li>Radio's 95% CI is (0.1622, 0.2427). How can you tell it's significant at α = 0.05 without the p-value?<span class="a">0 is not in the interval, so we reject H₀: β₁ = 0 at α = 0.05. A 95% CI and a two-sided test at 0.05 always agree.</span></li>
+    <li>Newspaper is significant alone but not alongside TV and radio. Why?<span class="a">Newspaper is correlated with radio. Alone, it borrows radio's effect; once radio is held constant, it has nothing left to explain. This idea returns later as multicollinearity.</span></li>
+  </ol></div></details>
+</section>
+
+<section class="step" id="s4">
+  <h3><span class="n">1.4</span>The multiple regression model</h3>
+\[Y = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \dots + \beta_p X_p + \epsilon = \mu + \epsilon\]
+  <p>\(p\) is the number of predictors and \(\mu = \beta_0 + \beta_1X_1 + \dots + \beta_pX_p\) is the <strong>deterministic part</strong>, the predictable average. For Advertising:</p>
+\[Sales = \beta_0 + \beta_1 X_{TV} + \beta_2 X_{radio} + \beta_3 X_{newspaper} + \epsilon\]
+  <p>A <strong>first-order model</strong> has each quantitative predictor on its own, to the power 1: no \(X^2\) terms and no \(X_1X_2\) products.</p>
+  <h4>Why it's harder than simple regression</h4>
+  <ol>
+    <li><strong>Model selection:</strong> many possible subsets of predictors, several of which can look reasonable.</li>
+    <li><strong>Visualization:</strong> you can't plot beyond 3D.</li>
+    <li><strong>Overfitting:</strong> more predictors isn't always better; complex models fit noise.</li>
+    <li><strong>Computation:</strong> needs matrix algebra, which R does for you.</li>
+  </ol>
+  <p><strong>Geometry:</strong> 1 predictor gives a line, 2 give a plane through a 3D cloud, 3+ give a hyperplane. Least squares always minimizes the squared <em>vertical</em> distances to the surface.</p>
+  <div class="key"><strong>Remember:</strong> <mark>"first-order" is about powers and products, not the number of predictors.</mark></div>
+  <details class="check"><summary>Check yourself</summary><div class="body"><ol>
+    <li>Is \(Sales = \beta_0 + \beta_1 TV + \beta_2 TV^2\) first-order?<span class="a">No, because of the TV² term, which makes it second-order. Simple regression has one predictor and <em>is</em> first-order.</span></li>
+  </ol></div></details>
+</section>
+
+<section class="step" id="s5">
+  <h3><span class="n">1.5</span>Least squares and the design matrix</h3>
+  <p>Choose the \(\hat\beta\)'s that <strong>minimize SSE</strong>:</p>
+\[SSE = \sum_{i=1}^{n}\big(y_i - (\hat\beta_0 + \hat\beta_1 x_{1i} + \dots + \hat\beta_p x_{pi})\big)^2\]
+  <p>The solution in matrix form:</p>
+\[\hat\beta = (X'X)^{-1}X'y\]
+\[X = \begin{pmatrix}1 & x_{11} & \cdots & x_{1p}\\ 1 & x_{21} & \cdots & x_{2p}\\ \vdots & \vdots & & \vdots\\ 1 & x_{n1} & \cdots & x_{np}\end{pmatrix}\]
+  <div class="tbl"><table>
+    <tr><th>Object</th><th>Advertising size</th><th>Why</th></tr>
+    <tr><td>\(y\)</td><td>200 × 1</td><td>One response per market</td></tr>
+    <tr><td>\(X\)</td><td>200 × 4</td><td>One row per market; columns 1, TV, radio, newspaper</td></tr>
+    <tr><td>\(X'X\)</td><td>4 × 4</td><td>The (p+1) × (p+1) matrix that gets inverted</td></tr>
+    <tr><td>\(\hat\beta\)</td><td>4 × 1</td><td>One estimate per parameter</td></tr>
+  </table></div>
+  <p>The column of 1s produces the intercept, because \(\beta_0\) is multiplied by 1 on every row. Without it, the plane is forced through the origin, which distorts the slopes too.</p>
+<pre><code>X = model.matrix(sale ~ tv + radio + newspaper, data = Advertising)
+y = Advertising$sale
+solve(t(X) %*% X) %*% t(X) %*% y   <span class="c"># same as coef(lm(...))</span></code></pre>
+  <h4>What happens to the slopes</h4>
+  <div class="tbl"><table>
+    <tr><th>Predictor</th><th class="num">Slope alone</th><th class="num">Slope in multiple model</th></tr>
+    <tr><td>TV</td><td class="num">0.0475</td><td class="num">0.0458</td></tr>
+    <tr><td>Radio</td><td class="num">0.2025</td><td class="num">0.1885</td></tr>
+    <tr><td>Newspaper</td><td class="num">0.0547</td><td class="num"><strong>−0.0010</strong></td></tr>
+  </table></div>
+  <p>TV barely moves because it is nearly <strong>uncorrelated</strong> with the other media. Newspaper collapses because it is correlated with radio.</p>
+  <div class="key"><strong>Remember:</strong> <mark>X has n rows (observations) and p + 1 columns (parameters).</mark></div>
+  <details class="check"><summary>Check yourself</summary><div class="body"><ol>
+    <li>What are the dimensions of X for Advertising?<span class="a">200 × 4. 200 markets; columns for the intercept, TV, radio, newspaper. (X′X is 4 × 4.)</span></li>
+    <li>What goes wrong without the column of 1s?<span class="a">There's no intercept, so the fitted plane is forced through the origin (predicted Y = 0 when all X = 0), which also distorts the slopes.</span></li>
+  </ol></div></details>
+</section>
+
+<section class="step" id="s6">
+  <h3><span class="n">1.6</span>Interpreting coefficients</h3>
+<pre><code>predict_ad_model = lm(sale ~ tv + radio + newspaper, data = Advertising)
+coefficients(predict_ad_model)</code></pre>
+\[\widehat{Sale} = 2.939 + 0.0458X_{TV} + 0.1885X_{radio} - 0.0010X_{newspaper}\]
+  <div class="lines">
+    <div><code>Intercept 2.939</code><span>Predicted sales (about 2,939 units) when all budgets are $0. Only meaningful if 0 is realistic and inside the data.</span></div>
+    <div><code>TV 0.0458</code><span>For a given radio and newspaper budget, an extra $1,000 on TV is associated with about <strong>46 more units</strong> sold, on average.</span></div>
+    <div><code>Radio 0.1885</code><span>For a given TV and newspaper budget, an extra $1,000 on radio is associated with about <strong>189 more units</strong> sold. Per dollar, about 4× TV.</span></div>
+    <div><code>Newspaper −0.0010</code><span>About 1 fewer unit per extra $1,000: effectively zero.</span></div>
+  </div>
+  <p><strong>Two goals of regression:</strong> association (which predictors relate to Y, and how strongly) and prediction (estimating Y for new data).</p>
+  <div class="key"><strong>Remember:</strong> <mark>every multiple regression interpretation needs "holding the other predictors constant", units, and "on average".</mark></div>
+  <details class="check"><summary>Check yourself</summary><div class="body"><ol>
+    <li>Write a full interpretation of radio's 0.1885.<span class="a">Holding TV and newspaper constant, every extra $1,000 on radio is associated with an increase of about 188.5 units sold, on average.</span></li>
+  </ol></div></details>
+</section>
+
+<section class="step" id="s7">
+  <h3><span class="n">1.7</span>Confidence intervals for coefficients</h3>
+\[\hat\beta_i \pm t_{\alpha/2,\; n-p-1} \times S_{\hat\beta_i}\]
+  <p>\(S_{\hat\beta_i}\) is the standard error (the <code>Std. Error</code> column of <code>summary()</code>). We use a t-distribution because the error variance is estimated, not known. \(t_{\alpha/2}\) is the <strong>upper</strong> critical value (positive).</p>
+  <h4>By hand: TV at 95%</h4>
+  <p>df = 200 − 3 − 1 = 196, so \(t_{0.025,196} \approx 1.972\). Then \(0.045765 \pm 1.972 \times 0.001395 = 0.045765 \pm 0.00275\), giving <strong>(0.0430, 0.0485)</strong>.</p>
+  <p><em>"We are 95% confident that each extra $1,000 on TV is associated with an increase of 43 to 48.5 units sold, holding radio and newspaper constant."</em></p>
+<pre><code>confint(predict_ad_model)                <span class="c"># 95%</span>
+confint(predict_ad_model, level = 0.99)  <span class="c"># 99%</span></code></pre>
+  <div class="tbl"><table>
+    <tr><th>Level</th><th class="num">t (df 196)</th><th>TV interval</th></tr>
+    <tr><td>95%</td><td class="num">1.97</td><td>(0.0430, 0.0485)</td></tr>
+    <tr><td>99%</td><td class="num">2.60</td><td>(0.0421, 0.0494)</td></tr>
+  </table></div>
+  <p><strong>"95% confident" means:</strong> if we repeated the sampling many times, about 95% of the intervals built this way would contain the true β. It doesn't mean a 95% chance that β is in this particular interval.</p>
+  <p>Newspaper's CI is (−0.0126, 0.0105). It <strong>contains 0</strong>, so its effect isn't distinguishable from zero. Before dropping it, confirm with a t-test or partial F-test, compare adjusted R² and RSE, and ask whether there's a business reason to keep it.</p>
+  <div class="key"><strong>Remember:</strong> <mark>0 inside the CI ⇔ fail to reject H₀: βᵢ = 0.</mark> Higher confidence means a bigger t, so a wider interval.</div>
+  <details class="check"><summary>Check yourself</summary><div class="body"><ol>
+    <li>Is the 99% CI wider or narrower than the 95% CI? Why?<span class="a">Wider. The t critical value grows from about 1.97 to 2.60, and multiplies the same standard error. More confidence costs precision.</span></li>
+  </ol></div></details>
+</section>
+
+<section class="step" id="s8">
+  <h3><span class="n">1.8</span>p-values, α and errors</h3>
+  <div class="tbl"><table>
+    <tr><th>Term</th><th>Meaning</th></tr>
+    <tr><td><strong>p-value</strong></td><td>Probability of results at least this extreme <strong>if H₀ were true</strong></td></tr>
+    <tr><td><strong>α</strong></td><td>P(Type I error): rejecting H₀ when it's actually true (a false alarm). Usually 0.05.</td></tr>
+    <tr><td><strong>Type II error</strong></td><td>Failing to reject H₀ when it's actually false (a missed effect)</td></tr>
+    <tr><td><strong>Decision rule</strong></td><td>Reject H₀ when p-value &lt; α</td></tr>
+  </table></div>
+  <p>The notes use <strong>β</strong> for the Type II error probability. That's a different β from the regression coefficients.</p>
+  <div class="vs">
+    <div class="ok"><span class="lbl">Say this</span>"p &lt; 0.05, so we reject H₀. There is evidence that…"</div>
+    <div class="no"><span class="lbl">Not this</span>"We have enough evidence for H₀" or "we proved H₀ is false."</div>
+  </div>
+  <div class="key"><strong>Remember:</strong> <mark>we reject or fail to reject H₀; we never prove it or gather evidence for it.</mark></div>
+</section>
+
+<section class="step" id="s9">
+  <h3><span class="n">1.9</span>The global F-test and the ANOVA table</h3>
+  <p>The first question: is the model useful at all?</p>
+\[H_0: \beta_1 = \beta_2 = \dots = \beta_p = 0 \qquad H_a: \text{at least one } \beta_i \neq 0\]
+  <p>H₀ says the model is no better than the <strong>null model</strong>, <code>lm(sale ~ 1)</code>, which predicts ȳ every time. For the null model SSR = 0 and SSE = SST.</p>
+  <h4>Why test the whole model first?</h4>
+  <p>Many separate t-tests inflate false positives: about 5 "significant" results per 100 useless predictors at α = 0.05. The global F-test is <strong>one</strong> test, so the overall Type I error rate stays at α.</p>
+  <div class="tbl"><table>
+    <tr><th>Source</th><th>SS</th><th>df</th><th>Mean square</th><th>F</th></tr>
+    <tr><td>Regression</td><td>SSR</td><td>\(p\)</td><td>MSR = SSR / p</td><td>MSR / MSE</td></tr>
+    <tr><td>Error</td><td>SSE</td><td>\(n-p-1\)</td><td>MSE = SSE / (n−p−1)</td><td></td></tr>
+    <tr><td>Total</td><td>SST</td><td>\(n-1\)</td><td></td><td></td></tr>
+  </table></div>
+\[F_{obs} = \frac{SSR/p}{SSE/(n-p-1)} \sim F_{p,\;n-p-1}\]
+  <p>If the predictors are useless, MSR ≈ MSE and F ≈ 1. A large F means the model explains far more than chance.</p>
+  <h4>Advertising, from <code>aov()</code></h4>
+<pre class="out">            Sum Sq   Df
+tv        3314.618    1
+radio     1545.617    1
+newspaper    0.089    1
+Residuals  556.824  196</pre>
+  <ul>
+    <li>SSR = 3314.618 + 1545.617 + 0.089 = <strong>4860.324</strong>; MSR = 4860.324 / 3 = 1620.11</li>
+    <li>MSE = 556.824 / 196 = 2.841</li>
+    <li><strong>F = 570.3</strong>, df (3, 196), p ≈ 0, so we reject H₀</li>
+    <li>SST = 5417.149 and R² = 4860.324 / 5417.149 = 0.897</li>
+  </ul>
+  <p><strong>If the global test fails, stop.</strong> Don't hunt through t-tests for something significant. If it succeeds, at least one predictor matters, but it doesn't say which.</p>
+  <div class="key"><strong>Remember:</strong> <mark>both the SS column and the df column add up</mark>: SST = SSR + SSE and (n−1) = p + (n−p−1). Write the df first, then divide.</div>
+  <details class="check"><summary>Check yourself</summary><div class="body"><ol>
+    <li>n = 30, p = 4, SSR = 600, SSE = 250. Fill in the ANOVA table.<span class="a">df: 4, 25, 29. MSR = 150, MSE = 250/25 = 10, <strong>F = 15</strong>, SST = 850, R² = 0.71.</span></li>
+    <li>Sanity check: could R² = 0.71 go with F ≈ 1.2?<span class="a">No. R² = 0.71 says the model explains a lot; F ≈ 1 says it barely beats the mean. When numbers contradict each other, recheck the arithmetic.</span></li>
+    <li>The global F-test gives p = 0.40. What next?<span class="a">Fail to reject H₀ and stop. Searching the t-tests would invite false positives. Rethink the predictors or the model.</span></li>
+  </ol></div></details>
+</section>
+
+<section class="step" id="s10">
+  <h3><span class="n">1.10</span>Sequential SS in <code>aov()</code></h3>
+  <p><code>aov()</code> assigns sums of squares <strong>in the order the predictors are listed</strong>. The first predictor gets credit for everything it explains alone; each later one gets only the <em>extra</em> it adds.</p>
+  <div class="vs">
+    <div class="no"><span class="lbl">Newspaper last</span><pre><code>sale ~ tv + radio + newspaper</code></pre>Newspaper SS = 0.089</div>
+    <div class="ok"><span class="lbl">Newspaper first</span><pre><code>sale ~ newspaper + tv + radio</code></pre>Newspaper SS = 282.34 (its simple-regression SSR)</div>
+  </div>
+  <p>The individual SS change with order, but the <strong>total SSR (4860.324) doesn't</strong>.</p>
+  <div class="key"><strong>Remember:</strong> <mark><code>aov()</code> SS depend on order; t-tests in <code>summary()</code> don't.</mark></div>
+</section>
+
+<section class="step" id="s11">
+  <h3><span class="n">1.11</span>Individual t-tests</h3>
+\[H_0: \beta_i = 0 \;\text{(given the other predictors)} \qquad H_a: \beta_i \neq 0\]
+\[T_{obs} = \frac{\hat\beta_i - 0}{S_{\hat\beta_i}} \sim t_{n-p-1}\]
+  <p>The test statistic counts how many standard errors the estimate is from 0. The p-value is two-sided, \(2 \times P(T \geq |t_{obs}|)\); R prints it as <code>Pr(&gt;|t|)</code>.</p>
+  <div class="tbl"><table>
+    <tr><th>Predictor</th><th class="num">Estimate</th><th class="num">Std. Error</th><th class="num">t</th><th class="num">p</th><th>Decision</th></tr>
+    <tr><td>TV</td><td class="num">0.045765</td><td class="num">0.001395</td><td class="num">32.81</td><td class="num">≈ 0</td><td>Keep</td></tr>
+    <tr><td>Radio</td><td class="num">0.188530</td><td class="num">0.008611</td><td class="num">21.89</td><td class="num">≈ 0</td><td>Keep</td></tr>
+    <tr><td>Newspaper</td><td class="num">−0.001037</td><td class="num">0.005871</td><td class="num">−0.18</td><td class="num">0.86</td><td>Candidate to drop</td></tr>
+  </table></div>
+  <div class="key"><strong>Remember:</strong> <mark>each t-test asks whether a predictor adds anything on top of all the others</mark>, so it isn't affected by the order in the formula.</div>
+  <details class="check"><summary>Check yourself</summary><div class="body"><ol>
+    <li>Compute newspaper's t from its estimate and SE.<span class="a">−0.001037 / 0.005871 = −0.177, df = 196, p = 0.86. Fail to reject: newspaper adds nothing significant given TV and radio.</span></li>
+    <li>With newspaper listed first, does its t-test p-value change?<span class="a">No, it stays 0.86. Only the sequential <code>aov()</code> SS change with order.</span></li>
+  </ol></div></details>
+</section>
+
+<section class="step" id="s12">
+  <h3><span class="n">1.12</span>The partial F-test</h3>
+  <p>Does a <strong>subset of q predictors</strong> add anything, given the others are already in the model?</p>
+  <ul>
+    <li><strong>Full model:</strong> all predictors</li>
+    <li><strong>Reduced model:</strong> the full model <em>minus</em> the q predictors being tested</li>
+  </ul>
+\[F_{obs} = \frac{(SSE_{reduced} - SSE_{full})/(df_{reduced} - df_{full})}{SSE_{full}/df_{full}} \sim F_{q,\;df_{full}}\]
+  <p>df here means <strong>error</strong> df. Dropping predictors <em>always</em> increases SSE; the test asks whether it increases more than chance would explain.</p>
+<pre><code>reduced = lm(sale ~ tv + radio, data = Advertising)
+full    = lm(sale ~ tv + radio + newspaper, data = Advertising)
+anova(reduced, full)   <span class="c"># reduced model first</span></code></pre>
+\[F = \frac{(556.9140 - 556.8253)/(197-196)}{556.8253/196} = \frac{0.0887}{2.841} = 0.031,\quad df = (1, 196),\; p = 0.86\]
+  <p>Fail to reject, so <strong>drop newspaper</strong>. The final model is:</p>
+\[\widehat{Sale} = 2.921 + 0.04575X_{TV} + 0.18799X_{radio}\]
+  <h4>Three connections</h4>
+  <ol>
+    <li>The SSE increase (0.0887) is newspaper's sequential SS (0.089), because newspaper was entered last.</li>
+    <li>For one predictor, <strong>F = t²</strong>: (−0.177)² ≈ 0.031, with the same p-value.</li>
+    <li>The partial F-test earns its keep when q &gt; 1, e.g. radio and newspaper together beyond TV.</li>
+  </ol>
+<pre><code><span class="c"># Do radio and newspaper together add anything beyond TV? (q = 2)</span>
+anova(lm(sale ~ tv, data = Advertising),
+      lm(sale ~ tv + radio + newspaper, data = Advertising))</code></pre>
+  <div class="key"><strong>Remember:</strong> <mark>the predictors you're testing are the ones missing from the reduced model.</mark> Report the df as a pair: (q, df_full).</div>
+  <details class="check"><summary>Check yourself</summary><div class="body"><ol>
+    <li>n = 40. Full model: 5 predictors, SSE = 120. Reduced: 3 predictors, SSE = 180. Test it.<span class="a">df_full = 34, df_reduced = 36, q = 2. F = (60/2) / (120/34) = 30 / 3.53 = 8.5 with df (2, 34). The 5% cutoff is about 4.1, so reject H₀: the dropped predictors matter. (Not "because SSE went up"—it always does.)</span></li>
+    <li>To test radio and newspaper together beyond TV, what are the models and q?<span class="a">Full: TV + radio + newspaper. Reduced: TV only. q = 2.</span></li>
+  </ol></div></details>
+</section>
+
+<section class="step" id="s13">
+  <h3><span class="n">1.13</span>R², adjusted R² and RSE</h3>
+  <h4>R²</h4>
+\[R^2 = \frac{SSR}{SST} = 1 - \frac{SSE}{SST} = \text{Cor}(Y, \hat Y)^2\]
+  <p><strong>R² can never decrease when a predictor is added</strong>, even a useless one. It has no penalty for complexity, so it always favours the bigger model.</p>
+  <h4>Adjusted R²</h4>
+\[R^2_{adj} = 1 - \frac{SSE/(n-p-1)}{SST/(n-1)} = 1 - \frac{MSE}{SST/(n-1)}\]
+  <p>Penalizes each extra predictor through its degrees of freedom, so it can go down. It's <strong>always ≤ R²</strong>.</p>
+  <h4>RSE, the residual standard error</h4>
+\[s = RSE = \sqrt{\frac{SSE}{n-p-1}} = \sqrt{MSE}\]
+  <p>The typical size of a prediction error, in the <strong>same units as Y</strong>. Lower is better.</p>
+<pre><code>summary(full)$r.squared;     summary(reduced)$r.squared
+summary(full)$adj.r.squared; summary(reduced)$adj.r.squared
+sigma(full); sigma(reduced)</code></pre>
+  <div class="tbl"><table>
+    <tr><th>Model</th><th class="num">SSE</th><th class="num">df</th><th class="num">MSE</th><th class="num">R²</th><th class="num">R²adj</th><th class="num">RSE</th></tr>
+    <tr><td>TV + radio + newspaper</td><td class="num">556.825</td><td class="num">196</td><td class="num">2.841</td><td class="num">0.89721</td><td class="num">0.8956</td><td class="num">1.686</td></tr>
+    <tr><td>TV + radio</td><td class="num">556.914</td><td class="num">197</td><td class="num">2.827</td><td class="num">0.89719</td><td class="num"><strong>0.8962</strong></td><td class="num"><strong>1.681</strong></td></tr>
+  </table></div>
+  <p>Plain R² favours the full model by 0.00002. Adjusted R² and RSE both favour TV + radio. <em>"Using TV and radio, our sales predictions are typically off by about 1,700 units."</em></p>
+  <h4>Two useful facts</h4>
+  <ol>
+    <li>Adjusted R² and RSE always agree on the same dataset: both are built from MSE.</li>
+    <li>Dropping a predictor raises adjusted R² exactly when its <strong>|t| &lt; 1</strong>. Plain R² goes down (or stays the same) whenever you drop one.</li>
+  </ol>
+  <div class="key"><strong>Remember:</strong> <mark>compare models with adjusted R² and RSE, never plain R².</mark> Report plain R² when you say "X% of the variation is explained".</div>
+  <details class="check"><summary>Check yourself</summary><div class="body"><ol>
+    <li>n = 30, p = 4, SSE = 250, SST = 850. Find R²adj and RSE.<span class="a">MSE = 250/25 = 10. SST/(n−1) = 850/29 = 29.31. R²adj = 1 − 10/29.31 = <strong>0.659</strong>. RSE = √10 = <strong>3.16</strong>. Adjusted R² (0.659) is below R² (0.71), as it must be.</span></li>
+    <li>A predictor has t = 0.8. Drop it: what happens to R² and adjusted R²?<span class="a">Adjusted R² goes up (|t| &lt; 1). Plain R² goes down or stays the same.</span></li>
+  </ol></div></details>
+</section>
+
+<section class="step" id="s14">
+  <h3><span class="n">1.14</span>Prediction intervals</h3>
+  <p>Point prediction for TV = 200, radio = 20 ($200k and $20k):</p>
+\[\widehat{Sale} = 2.9211 + 0.04575(200) + 0.18799(20) = 15.83\]
+  <div class="tbl"><table>
+    <tr><th></th><th>Confidence interval</th><th>Prediction interval</th></tr>
+    <tr><td>Question</td><td><strong>Average</strong> sales of all markets with these budgets</td><td>Sales for <strong>one</strong> new market</td></tr>
+    <tr><td>Uncertainty</td><td>Estimated line only</td><td>Estimated line <strong>plus</strong> individual scatter ε</td></tr>
+    <tr><td>Width</td><td>Narrower</td><td>Wider</td></tr>
+    <tr><td>R</td><td><code>interval = "confidence"</code></td><td><code>interval = "predict"</code></td></tr>
+  </table></div>
+<pre><code>newdata = data.frame(tv = 200, radio = 20)   <span class="c"># names must match the model</span>
+predict(reduced, newdata, interval = "predict",    level = 0.95)
+predict(reduced, newdata, interval = "confidence", level = 0.95)</code></pre>
+<pre class="out">       fit      lwr      upr
+1 15.83179 12.50422 19.15936</pre>
+  <p><em>"We are 95% confident that a market spending $200,000 on TV and $20,000 on radio will sell between about 12,504 and 19,160 units."</em></p>
+  <p>Another example: TV = 100, radio = 30 gives fit 13.14 and PI (9.81, 16.46), about 9,808 to 16,465 units.</p>
+  <h4>What sets the width</h4>
+\[\hat y \pm t \times \sqrt{s^2 + SE(\hat y)^2}\]
+  <p>With n = 200, \(SE(\hat y)\) is small, so RSE dominates: 15.83 ± 1.97 × 1.681 gives (12.52, 19.14), almost R's answer. If RSE doubled, the interval would roughly double in width.</p>
+  <div class="key"><strong>Remember:</strong> <mark>one new observation → prediction interval; the average → confidence interval.</mark> Averages are more predictable than individuals.</div>
+  <details class="check"><summary>Check yourself</summary><div class="body"><ol>
+    <li>Predict sales for TV = 100, radio = 30 by hand.<span class="a">2.9211 + 0.04575(100) + 0.18799(30) = 13.136, about 13,136 units.</span></li>
+    <li>A manager is opening one new store. Which interval?<span class="a">A prediction interval: it's one individual observation, not an average.</span></li>
+  </ol></div></details>
+</section>
+
+<section class="step" id="s15">
+  <h3><span class="n">1.15</span>Extrapolation</h3>
+  <p>Only predict inside the range of the data used to fit the model. In Advertising, TV runs from about 0.7 to 296 and radio from 0 to about 50.</p>
+  <ul>
+    <li>TV = 400 is <strong>outside the data</strong>, so the answer is no: we have no evidence the straight line holds there, and ad spending often has diminishing returns.</li>
+    <li><strong>Hidden extrapolation:</strong> each value can be in range alone while the <em>combination</em> never appears (very high TV and very high radio together). Check a scatterplot of the predictors against each other.</li>
+  </ul>
+<pre><code>summary(Advertising)                       <span class="c"># min / max of each column</span>
+plot(Advertising$tv, Advertising$radio)    <span class="c"># which combinations exist?</span></code></pre>
+  <div class="key"><strong>Remember:</strong> <mark>apply the range rule to the actual numbers and commit to an answer.</mark></div>
+</section>
+
+<!-- ============ PRACTICE ============ -->
+<div class="part" id="practice">
+  <div class="eyebrow">Practice problems</div>
+  <h2>Working through the in-class problems</h2>
+  <p>Insect biomass, the condominium data (15 condos) and the canola yields.</p>
+</div>
+
+<section class="step" id="p1">
+  <h3><span class="n">P1</span>Insect biomass: watch the units</h3>
+  <p>A car drove a highway 100 times. Fitted model: \(\widehat{Biomass} = 67.76 \times DrivingTime\), with biomass in <strong>mg</strong> and time in <strong>minutes</strong>. Which statements are true?</p>
+  <div class="tbl"><table>
+    <tr><th>Statement</th><th>Verdict</th></tr>
+    <tr><td>(a) Increases by 0.0678 g per minute</td><td>✅ True: 67.76 mg ÷ 1000 = 0.0678 g</td></tr>
+    <tr><td>(b) Driving time increases for every 0.0676 g</td><td>❌ Reverses the direction; the model predicts biomass from time</td></tr>
+    <tr><td>(c) Increases by 67.76 mg per minute</td><td>✅ True: the model read directly</td></tr>
+    <tr><td>(d) Increases by 67,776 mg per minute</td><td>❌ Multiplies by 1000 instead of dividing</td></tr>
+  </table></div>
+  <div class="key"><strong>Remember:</strong> <mark>check the direction (X predicts Y) and the unit conversion.</mark></div>
+</section>
+
+<section class="step" id="p2">
+  <h3><span class="n">P2</span>Condos: fitting the model and CIs</h3>
+  <p>List price Y (in $1000s), living area (hundreds of m²), floors, bedrooms and baths for 15 condos.</p>
+<pre><code>condos = read.csv("https://raw.githubusercontent.com/DanikaLipman/DATA603/main/condominium.csv")
+predict_condo = lm(listprice ~ livingarea + floors + bedrooms + baths, data = condos)
+summary(predict_condo)
+confint(predict_condo)</code></pre>
+\[\widehat{ListPrice} = 18.60 + 67.68X_{living} - 16.51X_{floors} - 2.73X_{bed} + 30.48X_{baths}\]
+  <p><strong>Living area:</strong> holding floors, bedrooms and baths constant, each extra 100 m² of living area is associated with an increase in list price of about <strong>$67,678</strong>, on average.</p>
+  <pre class="out">                 2.5 %    97.5 %
+(Intercept)  -1.823673 39.016732
+livingarea   50.320871 85.035899
+floors      -30.317477 -2.699473
+bedrooms    -12.706380  7.245643
+baths        15.289484 45.668057</pre>
+  <p>Only <strong>bedrooms</strong> has a slope CI containing 0. The intercept's CI also contains 0, but we test the slopes and keep the intercept by default.</p>
+  <p><strong>Why negative signs for floors and bedrooms?</strong> Holding living area fixed, an extra bedroom means carving the same space into smaller rooms, which buyers may not value. Bedrooms and living area carry overlapping information, just like newspaper and radio.</p>
+  <div class="key"><strong>Remember:</strong> <mark>a surprising sign often means overlapping predictors</mark>; read it through "holding the others constant".</div>
+</section>
+
+<section class="step" id="p3">
+  <h3><span class="n">P3</span>Condos: global F-test and t-tests</h3>
+<pre class="out">            Estimate Std. Error t value Pr(>|t|)
+(Intercept)   18.597      9.165   2.029   0.0699
+livingarea    67.678      7.790   8.688 5.68e-06
+floors       -16.508      6.198  -2.664   0.0237
+bedrooms      -2.730      4.477  -0.610   0.5556
+baths         30.479      6.817   4.471   0.0012
+
+Residual standard error: 6.82 on 10 degrees of freedom
+Multiple R-squared:  0.9716,  Adjusted R-squared:  0.9603
+F-statistic: 85.56 on 4 and 10 DF,  p-value: 1.08e-07</pre>
+  <h4>Global F-test</h4>
+\[H_0: \beta_1 = \beta_2 = \beta_3 = \beta_4 = 0 \qquad H_a: \text{at least one } \beta_i \neq 0\]
+  <p>F = 85.56 with df (4, 10), p = 1.08 × 10⁻⁷ &lt; 0.05, so we reject H₀: at least one predictor is linearly related to list price. MSR = 3979.27 and MSE = 46.51, so SSR ≈ 15,917, SSE ≈ 465 and R² ≈ 0.97.</p>
+  <h4>Individual t-tests (df = 10, t critical ≈ 2.23)</h4>
+  <div class="tbl"><table>
+    <tr><th>Predictor</th><th class="num">t</th><th class="num">p</th><th>At α = 0.05</th></tr>
+    <tr><td>Living area</td><td class="num">8.69</td><td class="num">0.000006</td><td>Significant</td></tr>
+    <tr><td>Baths</td><td class="num">4.47</td><td class="num">0.0012</td><td>Significant</td></tr>
+    <tr><td>Floors</td><td class="num">−2.66</td><td class="num">0.024</td><td>Significant</td></tr>
+    <tr><td>Bedrooms</td><td class="num">−0.61</td><td class="num">0.556</td><td><strong>Not significant</strong></td></tr>
+  </table></div>
+  <div class="key"><strong>Remember:</strong> <mark>pick the first predictor to drop by the largest p-value.</mark> The |t| &lt; 1 rule answers a different question: whether adjusted R² will rise.</div>
+</section>
+
+<section class="step" id="p4">
+  <h3><span class="n">P4</span>Condos: dropping bedrooms</h3>
+<pre><code>condo_no_bed = lm(listprice ~ livingarea + floors + baths, data = condos)
+anova(condo_no_bed, predict_condo)   <span class="c"># partial F-test for bedrooms</span>
+summary(condo_no_bed)</code></pre>
+  <p>\(H_0: \beta_{bedrooms} = 0\) given living area, floors and baths are in the model; \(H_a: \beta_{bedrooms} \neq 0\).</p>
+  <p>You can work out the result before running it:</p>
+  <ul>
+    <li><strong>F = t² = (−0.610)² ≈ 0.37</strong>, df (1, 10), p ≈ 0.556 (the same as the t-test), so fail to reject and drop bedrooms.</li>
+    <li>SSE_full = 6.82² × 10 ≈ 465.1; SSE_reduced ≈ 465.1 + 0.372 × 46.51 ≈ 482.4 on 11 df.</li>
+    <li>New MSE ≈ 43.9, so <strong>RSE ≈ 6.62</strong> (down from 6.82).</li>
+    <li>SST ≈ 465.1 / (1 − 0.9716) ≈ 16,377, so <strong>adjusted R² ≈ 0.9625</strong> (up from 0.9603), as expected since |t| &lt; 1.</li>
+  </ul>
+  <p class="warn"><strong>To confirm:</strong> these are worked out from the full-model summary. Run the code and check the reduced model's output matches, then see whether living area, floors and baths all stay significant.</p>
+  <div class="key"><strong>Remember:</strong> <mark>drop one predictor at a time and refit</mark>: p-values change when the model changes.</div>
+</section>
+
+<section class="step" id="p5">
+  <h3><span class="n">P5</span>Still to do</h3>
+  <ul>
+    <li><strong>Condos, Problem 3(c):</strong> a 95% prediction interval for a condo, using values inside the data range (check with <code>summary(condos)</code>).</li>
+    <li><strong>Canola, Problem 4:</strong> yield (bushels/acre) against insecticide, fertilizer, summer heat units and rain. Build a model you can defend using the <a href="#workflow">workflow</a>.</li>
+  </ul>
+<pre><code>Canola = read.csv("https://raw.githubusercontent.com/DanikaLipman/DATA603/main/canolayield_pg.csv")</code></pre>
+</section>
+
+<!-- ============ REFERENCE ============ -->
+<div class="part" id="reference">
+  <div class="eyebrow">Quick reference</div>
+  <h2>For the night before</h2>
+</div>
+
+<section class="step" id="workflow">
+  <h3><span class="n">R1</span>The modelling workflow</h3>
+  <div class="flow">
+    <div><b>Fit the full model</b><span>All candidate predictors: <code>lm(y ~ x1 + x2 + ...)</code></span></div>
+    <div><b>Global F-test</b><span>Fail to reject → stop. No t-test hunting.</span></div>
+    <div><b>Individual t-tests</b><span>Which predictors look weak, given the others?</span></div>
+    <div><b>Drop one at a time</b><span>Largest p-value first. Refit after each drop and confirm with <code>anova(reduced, full)</code>.</span></div>
+    <div><b>Compare models</b><span>Adjusted R² (higher is better) and RSE (lower is better). Never plain R².</span></div>
+    <div><b>Predict</b><span>Prediction interval for one new case, inside the data range.</span></div>
+  </div>
+</section>
+
+<section class="step" id="cheat">
+  <h3><span class="n">R2</span>R cheat sheet</h3>
+  <div class="tbl"><table>
+    <tr><th>Task</th><th>Code</th></tr>
+    <tr><td>Fit a model</td><td><code>lm(sale ~ tv + radio, data = Advertising)</code></td></tr>
+    <tr><td>Null model</td><td><code>lm(sale ~ 1, data = Advertising)</code></td></tr>
+    <tr><td>Coefficients</td><td><code>coef(model)</code></td></tr>
+    <tr><td>t-tests, R², adj R², RSE, global F</td><td><code>summary(model)</code></td></tr>
+    <tr><td>CIs for β</td><td><code>confint(model, level = 0.95)</code></td></tr>
+    <tr><td>Sequential SS (order matters)</td><td><code>aov(model)</code></td></tr>
+    <tr><td>Partial F-test</td><td><code>anova(reduced, full)</code></td></tr>
+    <tr><td>R² / adjusted R²</td><td><code>summary(m)$r.squared</code>, <code>$adj.r.squared</code></td></tr>
+    <tr><td>RSE</td><td><code>sigma(model)</code></td></tr>
+    <tr><td>Prediction interval</td><td><code>predict(m, newdata, interval = "predict")</code></td></tr>
+    <tr><td>Confidence interval for the mean</td><td><code>predict(m, newdata, interval = "confidence")</code></td></tr>
+    <tr><td>Design matrix</td><td><code>model.matrix(sale ~ tv + radio, data = Advertising)</code></td></tr>
+    <tr><td>Data ranges</td><td><code>summary(data)</code></td></tr>
+  </table></div>
+</section>
+
+<section class="step" id="formulas">
+  <h3><span class="n">R3</span>Formula sheet</h3>
+  <div class="tbl"><table>
+    <tr><th>Quantity</th><th>Formula</th><th>df</th></tr>
+    <tr><td>SST</td><td>\(\sum (y_i - \bar y)^2\)</td><td>\(n-1\)</td></tr>
+    <tr><td>SSR</td><td>\(\sum (\hat y_i - \bar y)^2\)</td><td>\(p\)</td></tr>
+    <tr><td>SSE</td><td>\(\sum (y_i - \hat y_i)^2\)</td><td>\(n-p-1\)</td></tr>
+    <tr><td>MSR / MSE</td><td>\(SSR/p\) and \(SSE/(n-p-1)\)</td><td></td></tr>
+    <tr><td>Global F</td><td>\(MSR/MSE\)</td><td>\((p,\; n-p-1)\)</td></tr>
+    <tr><td>t-statistic</td><td>\(\hat\beta_i / S_{\hat\beta_i}\)</td><td>\(n-p-1\)</td></tr>
+    <tr><td>CI for \(\beta_i\)</td><td>\(\hat\beta_i \pm t_{\alpha/2} S_{\hat\beta_i}\)</td><td>\(n-p-1\)</td></tr>
+    <tr><td>Partial F</td><td>\(\dfrac{(SSE_{red} - SSE_{full})/q}{SSE_{full}/df_{full}}\)</td><td>\((q,\; df_{full})\)</td></tr>
+    <tr><td>R²</td><td>\(SSR/SST = 1 - SSE/SST\)</td><td></td></tr>
+    <tr><td>Adjusted R²</td><td>\(1 - \dfrac{SSE/(n-p-1)}{SST/(n-1)}\)</td><td></td></tr>
+    <tr><td>RSE</td><td>\(\sqrt{MSE}\)</td><td></td></tr>
+    <tr><td>Least squares</td><td>\(\hat\beta = (X'X)^{-1}X'y\)</td><td></td></tr>
+  </table></div>
+</section>
+
+<section class="step" id="mistakes">
+  <h3><span class="n">R4</span>Mistakes to avoid</h3>
+  <div class="mistakes">
+    <div><b>Saying X "causes" Y</b><span>Observational data shows association. Say "is associated with".</span></div>
+    <div><b>Interpreting without units or "holding constant"</b><span>$1,000 on TV → about 46 units, holding radio and newspaper constant.</span></div>
+    <div><b>Getting R² backwards</b><span>It's the share of the variation in Y explained by the model, not "the model explained by X".</span></div>
+    <div><b>Calling R² the correlation</b><span>r is the correlation; R² is the coefficient of determination.</span></div>
+    <div><b>Giving X p + 1 rows</b><span>Rows = n observations; columns = p + 1 parameters.</span></div>
+    <div><b>Dividing SSE by the wrong df</b><span>Write n − p − 1 first, then divide. MSE slips are the most common arithmetic error.</span></div>
+    <div><b>Adjusted R² higher than R²</b><span>Impossible. Recheck the arithmetic.</span></div>
+    <div><b>Numbers that contradict each other</b><span>A high R² with F ≈ 1 means something was miscalculated.</span></div>
+    <div><b>Running t-tests after a non-significant global F</b><span>Stop. The model isn't useful.</span></div>
+    <div><b>Thinking <code>aov()</code> SS don't depend on order</b><span>They're sequential. t-tests in <code>summary()</code> aren't.</span></div>
+    <div><b>"The dropped predictors matter because SSE went up"</b><span>SSE always goes up. Ask whether F beats the critical value.</span></div>
+    <div><b>Building the reduced model from the tested predictors</b><span>Reduced = full model <em>minus</em> the predictors being tested.</span></div>
+    <div><b>Choosing what to drop by |t| &lt; 1</b><span>Drop the largest p-value first. |t| &lt; 1 tells you whether adjusted R² will rise.</span></div>
+    <div><b>Comparing models with plain R²</b><span>Use adjusted R² and RSE.</span></div>
+    <div><b>Confidence interval for one new case</b><span>Use a prediction interval.</span></div>
+    <div><b>Saying "if it's in range" without checking</b><span>Apply the rule to the numbers given and commit to an answer.</span></div>
+  </div>
+</section>
+
+<section class="step" id="errata">
+  <h3><span class="n">R5</span>Corrections to the lecture notes</h3>
+  <div class="tbl"><table>
+    <tr><th>In the notes</th><th>Should be</th></tr>
+    <tr><td>R² called the "Sample Correlation Coefficient"</td><td>The <strong>coefficient of determination</strong>; the correlation is r</td></tr>
+    <tr><td>Hₐ says "cannot be expressed" in the simple-regression tests</td><td>Hₐ: sales <strong>can</strong> be expressed as a linear function</td></tr>
+    <tr><td>Newspaper section prints the radio CI and labels both intervals β₀</td><td>Newspaper's CI; the second interval is <strong>β₁</strong></td></tr>
+    <tr><td>y vector ends in \(y_p\)</td><td>\(y_n\): one entry per observation</td></tr>
+    <tr><td>\(t_{\alpha/2}\) called the "α/2 quantile"</td><td>The <strong>upper</strong> α/2 critical value (positive)</td></tr>
+    <tr><td>t-test p-value written as \(P(T \geq t)\)</td><td>Two-sided: \(2 \times P(T \geq |t|)\)</td></tr>
+    <tr><td>Prediction example called a "95% confidence interval"</td><td><code>interval = "predict"</code> gives a <strong>prediction interval</strong></td></tr>
+    <tr><td>Toddler plot subtitle "Height and Weight"</td><td>Height and <strong>Age</strong></td></tr>
+  </table></div>
+</section>
+
+<footer>
+  DATA 603 · University of Calgary · Personal revision notes covering Lecture 1 (Multiple Linear Regression). Written in my own words from the lecture notes by Danika Lipman (based on content by Thuntida Ngamkham, with additions by Jim Stallard) and <em>An Introduction to Statistical Learning</em>.<br>
+  <a class="totop" href="#start">Back to top</a>
+</footer>
+
+</div>
+</main>
+</div>
+
+<script>
+(function(){
+  var rail=document.getElementById('rail'),btn=document.getElementById('menuBtn');
+  var links=[].slice.call(rail.querySelectorAll('.navgroup a'));
+  function closeMenu(){rail.classList.remove('open');btn.setAttribute('aria-expanded','false');btn.textContent='Contents';}
+  btn.addEventListener('click',function(){
+    var open=rail.classList.toggle('open');
+    btn.setAttribute('aria-expanded',open?'true':'false');btn.textContent=open?'Close':'Contents';
+  });
+  links.forEach(function(a){a.addEventListener('click',closeMenu);});
+
+  // Filter the contents by keyword (matches link text and the section's text)
+  var input=document.getElementById('navFilter'),none=document.getElementById('noMatch');
+  var index=links.map(function(a){
+    var id=a.getAttribute('href').slice(1),sec=document.getElementById(id);
+    return {a:a,li:a.parentNode,text:(a.textContent+' '+(sec?sec.textContent:'')).toLowerCase()};
+  });
+  input.addEventListener('input',function(){
+    var q=input.value.trim().toLowerCase(),shown=0;
+    index.forEach(function(it){var m=!q||it.text.indexOf(q)>-1;it.li.hidden=!m;if(m)shown++;});
+    [].slice.call(rail.querySelectorAll('.navgroup')).forEach(function(g){
+      g.hidden=!![].slice.call(g.querySelectorAll('li')).every(function(li){return li.hidden;});
+    });
+    none.hidden=shown>0;
+  });
+
+  // Highlight the section in view
+  var map={};links.forEach(function(a){map[a.getAttribute('href').slice(1)]=a;});
+  if('IntersectionObserver' in window){
+    var obs=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting&&map[e.target.id]){
+          links.forEach(function(l){l.classList.remove('active');});
+          map[e.target.id].classList.add('active');
+        }
+      });
+    },{rootMargin:'-20% 0px -70% 0px'});
+    Object.keys(map).forEach(function(id){var s=document.getElementById(id);if(s)obs.observe(s);});
+  }
+
+  // Render the maths once KaTeX has loaded
+  window.addEventListener('load',function(){
+    if(window.renderMathInElement){
+      renderMathInElement(document.body,{
+        delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],
+        ignoredTags:['script','noscript','style','textarea','pre','code'],
+        throwOnError:false
+      });
+    }
+    if(location.hash){var t=document.getElementById(location.hash.slice(1));if(t)t.scrollIntoView();}
+  });
+})();
+</script>
+
+</body>
+</html>
