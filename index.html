@@ -158,7 +158,7 @@ footer{margin-top:80px;color:var(--muted);font-size:14px;border-top:1px solid va
 
 <div class="shell">
 <nav class="rail" id="rail" aria-label="Contents">
-  <div class="brand">DATA 603 Revision Guide<small>Multiple linear regression in R, step by step</small></div>
+  <div class="brand">DATA 603 Revision Guide<small>Regression and interaction models in R, step by step</small></div>
   <label for="navFilter" style="position:absolute;left:-9999px">Filter topics</label>
   <input class="filter" id="navFilter" type="search" placeholder="Find a topic, e.g. RSE, partial F" autocomplete="off">
 
@@ -187,13 +187,25 @@ footer{margin-top:80px;color:var(--muted);font-size:14px;border-top:1px solid va
     </ol>
   </div>
   <div class="navgroup">
-    <h2>Practice problems</h2>
+    <h2>Lecture 1 · Practice</h2>
     <ol>
       <li><a href="#p1"><span class="n">P1</span>Insect biomass: units</a></li>
       <li><a href="#p2"><span class="n">P2</span>Condos: fit &amp; CIs</a></li>
       <li><a href="#p3"><span class="n">P3</span>Condos: F-test &amp; t-tests</a></li>
       <li><a href="#p4"><span class="n">P4</span>Condos: dropping bedrooms</a></li>
       <li><a href="#p5"><span class="n">P5</span>Still to do</a></li>
+    </ol>
+  </div>
+  <div class="navgroup">
+    <h2>Lecture 2 · Interactions</h2>
+    <ol>
+      <li><a href="#l2s1"><span class="n">2.1</span>Additive vs interaction</a></li>
+      <li><a href="#l2s2"><span class="n">2.2</span>Testing an interaction</a></li>
+      <li><a href="#l2s3"><span class="n">2.3</span>Interpreting slopes</a></li>
+      <li><a href="#l2s4"><span class="n">2.4</span>The hierarchy principle</a></li>
+      <li><a href="#l2s5"><span class="n">2.5</span>Which test when</a></li>
+      <li><a href="#l2s6"><span class="n">2.6</span>Practice: arsenic in wells</a></li>
+      <li><a href="#l2s7"><span class="n">2.7</span>Practice: sales districts</a></li>
     </ol>
   </div>
   <div class="navgroup">
@@ -215,7 +227,7 @@ footer{margin-top:80px;color:var(--muted);font-size:14px;border-top:1px solid va
 <!-- ============ START ============ -->
 <section class="hero" id="start">
   <h1>Everything from DATA 603 so far, one step at a time</h1>
-  <p>Lecture 1 covers multiple linear regression: fitting a model, testing it, comparing models and predicting. Each step explains the idea and the R code, then ends with a <em>Check yourself</em> box. Try the questions before you open the answers.</p>
+  <p>Lecture 1 covers multiple linear regression: fitting a model, testing it, comparing models and predicting. Lecture 2 adds interaction terms, for when one predictor's effect depends on another. Each step explains the idea and the R code, then ends with a <em>Check yourself</em> box. Try the questions before you open the answers.</p>
   <div class="howto">
     <div><b>Jump around</b>Use the contents list, or type a word like <code>adjusted</code> into the search box to find it.</div>
     <div><b>Highlighted text</b><mark>Yellow</mark> marks the one idea to remember from each step.</div>
@@ -677,6 +689,233 @@ summary(condo_no_bed)</code></pre>
 <pre><code>Canola = read.csv("https://raw.githubusercontent.com/DanikaLipman/DATA603/main/canolayield_pg.csv")</code></pre>
 </section>
 
+<!-- ============ LECTURE 2 ============ -->
+<div class="part" id="lecture2">
+  <div class="eyebrow">Lecture 2</div>
+  <h2>Interaction models</h2>
+  <p>When the effect of one predictor depends on another: grandfather clocks, factories, Advertising with TV × radio, and two practice problems.</p>
+</div>
+
+<section class="step" id="l2s1">
+  <h3><span class="n">2.1</span>Additive vs interaction models</h3>
+  <p>An <strong>additive model</strong> gives each predictor one fixed effect. A one-unit increase in \(X_1\) changes Y by \(\beta_1\), whatever the value of \(X_2\). The effects simply add up:</p>
+\[Y = \beta_0 + \beta_1X_1 + \beta_2X_2 + \epsilon\]
+  <p><strong>Interaction</strong> occurs when the effect of one predictor is <em>not constant</em> across the values of another. To model it, add a <strong>cross-product term</strong>:</p>
+\[Y = \beta_0 + \beta_1X_1 + \beta_2X_2 + \beta_3X_1X_2 + \epsilon\]
+  <h4>Grandfather clocks</h4>
+  <p>Auction price ($) from the clock's age (years) and the number of bids:</p>
+\[\widehat{Price} = 320 + 1\,X_{Age} - 93\,X_{Bids} + 1.5\,X_{Age}X_{Bids}\]
+  <p>Fix the number of bids and look at the slope of age:</p>
+  <div class="tbl"><table>
+    <tr><th class="num">Bids</th><th>Plug in</th><th>Equation in Age</th><th class="num">Slope of Age</th></tr>
+    <tr><td class="num">5</td><td>320 − 93(5) + (1 + 1.5×5)Age</td><td>−145 + 8.5·Age</td><td class="num">8.5</td></tr>
+    <tr><td class="num">10</td><td>320 − 93(10) + (1 + 1.5×10)Age</td><td>−610 + 16·Age</td><td class="num">16</td></tr>
+    <tr><td class="num">15</td><td>320 − 93(15) + (1 + 1.5×15)Age</td><td>−1075 + 23.5·Age</td><td class="num">23.5</td></tr>
+  </table></div>
+  <p>In general, <strong>slope of age = 1 + 1.5 × Bids</strong>. With 5 bids, each extra year of age adds about $8.50 to the price; with 15 bids, about $23.50. Older clocks gain more value when more people are bidding.</p>
+  <div class="tbl"><table>
+    <tr><th>Model</th><th>Lines for different numbers of bids</th></tr>
+    <tr><td>Interaction</td><td>Different slopes: the lines <strong>fan out</strong> (non-parallel)</td></tr>
+    <tr><td>Additive</td><td>The same slope at every number of bids: <strong>parallel</strong> lines, only shifted up or down</td></tr>
+  </table></div>
+  <div class="key"><strong>Remember:</strong> <mark>parallel lines → additive; non-parallel lines → interaction.</mark> The interaction coefficient is how much one predictor's slope changes per unit of the other.</div>
+  <details class="check"><summary>Check yourself</summary><div class="body"><ol>
+    <li>What is the slope of age with <strong>8 bids</strong>? Write price as an equation in age.<span class="a">1 + 1.5 × 8 = 13. Price = 320 − 93(8) + 13·Age = −424 + 13·Age. Each extra year adds about $13.</span></li>
+    <li>What does the 1.5 mean in plain English?<span class="a">Each additional bid increases the effect of age on price by $1.50 per year. From 5 to 10 bids, the slope rises by 5 × 1.5 = 7.5 (8.5 → 16).</span></li>
+    <li>Lines for 5, 10 and 15 bids all have slope 10. Is there an interaction?<span class="a">No. The lines are parallel: age has the same effect at every number of bids, and bids only shift the line up or down.</span></li>
+  </ol></div></details>
+</section>
+
+<section class="step" id="l2s2">
+  <h3><span class="n">2.2</span>Testing for an interaction</h3>
+  <p>Add the product term, then run a <strong>t-test on its coefficient</strong>:</p>
+\[H_0: \beta_3 = 0 \;\text{(no interaction)} \qquad H_a: \beta_3 \neq 0 \;\text{(interaction present)}\]
+\[T_{obs} = \frac{\hat\beta_3 - 0}{S_{\hat\beta_3}} \sim t_{n-p-1}\]
+  <p>Here p counts <strong>every term, including the interaction</strong>. An interaction uses up a degree of freedom like any other predictor.</p>
+  <h4>Advertising: TV × radio</h4>
+<pre><code>pred_sales_interact = lm(sale ~ tv + radio + tv*radio, data = Advertising)
+<span class="c"># same model: lm(sale ~ (tv + radio)^2, data = Advertising)</span>
+summary(pred_sales_interact)
+confint(pred_sales_interact)</code></pre>
+\[\widehat{Sales} = 6.750 + 0.0191X_{TV} + 0.0289X_{radio} + 0.0011X_{TV}X_{radio}\]
+  <p>\(T_{obs} = 0.001086 / 0.0000524 = 20.73\), with df = 200 − 3 − 1 = 196 and p ≈ 0, so we reject H₀: <strong>there is an interaction</strong>. The 95% CI for β₃, (0.0010, 0.0012), doesn't contain 0, which agrees.</p>
+  <div class="tbl"><table>
+    <tr><th>Model</th><th class="num">Adjusted R²</th></tr>
+    <tr><td>Additive (TV, radio)</td><td class="num">0.8962</td></tr>
+    <tr><td>+ TV × radio</td><td class="num"><strong>0.9678</strong></td></tr>
+  </table></div>
+  <p><strong>What it means:</strong> spending on one medium makes the other more effective. Marketing calls this a <strong>synergy effect</strong>; statistics calls it an <strong>interaction effect</strong>. For a manager: a mix of TV and radio gets more sales per dollar than putting the whole budget into one.</p>
+  <div class="key"><strong>Remember:</strong> <mark>the evidence for an interaction is its t-test</mark>, backed up by a higher adjusted R² and lower Sₑ. A smaller SSE is not evidence: SSE always falls when you add a term.</div>
+  <details class="check"><summary>Check yourself</summary><div class="body"><ol>
+    <li>Why is the df 196?<span class="a">200 − 3 − 1: three terms (TV, radio, TV × radio) plus the intercept. The interaction counts as a term.</span></li>
+    <li>The radio coefficient fell from 0.188 (additive) to 0.029. Did radio become less effective?<span class="a">No. In the interaction model, 0.029 is radio's slope when TV = 0. At TV = 150, the slope is 0.029 + 0.0011 × 150 ≈ 0.194, about the same as before.</span></li>
+  </ol></div></details>
+</section>
+
+<section class="step" id="l2s3">
+  <h3><span class="n">2.3</span>Interpreting slopes with an interaction</h3>
+  <p>Collect every term that contains \(X_1\):</p>
+\[Y = \beta_0 + (\beta_1 + \beta_3X_2)\,X_1 + \beta_2X_2 + \epsilon\]
+  <p>The effect of a one-unit increase in \(X_1\) is <strong>\(\beta_1 + \beta_3X_2\)</strong>: a formula, not a single number. Rearranging the other way, the effect of \(X_2\) is \(\beta_2 + \beta_3X_1\).</p>
+  <div class="lines">
+    <div><code>β₁ on its own</code><span>X₁'s slope only when X₂ = 0. That's often unrealistic or outside the data.</span></div>
+    <div><code>β₃ &gt; 0</code><span>X₁'s effect gets <strong>stronger</strong> as X₂ increases.</span></div>
+    <div><code>β₃ &lt; 0</code><span>X₁'s effect gets <strong>weaker</strong> as X₂ increases. It doesn't mean Y goes down.</span></div>
+  </div>
+  <h4>Factory</h4>
+  <p>Units produced from the number of production lines and workers:</p>
+\[\hat Y = 1.2 + 3.4X_{lines} + 0.22X_{workers} + 1.4X_{lines}X_{workers} = 1.2 + (3.4 + 1.4X_{workers})X_{lines} + 0.22X_{workers}\]
+  <p>Each extra line adds <strong>3.4 + 1.4 × workers</strong> units: 17.4 units with 10 workers. The interaction was <strong>justified before any fitting</strong>, because a line needs workers to produce anything. A reason from the subject makes an interaction more believable than one found by testing every possible term.</p>
+  <h4>Advertising (watch the units)</h4>
+  <p>Sales are in thousands of units and budgets in $1000s, so:</p>
+  <ul>
+    <li>Each extra $1,000 on TV is associated with about <strong>19.1 + 1.1 × radio</strong> more units sold.</li>
+    <li>Each extra $1,000 on radio is associated with about <strong>28.9 + 1.1 × TV</strong> more units sold.</li>
+  </ul>
+  <div class="key"><strong>Remember:</strong> <mark>never interpret β₁ alone in an interaction model.</mark> Write β₁ + β₃X₂, then plug in a realistic X₂ to give a concrete number.</div>
+  <details class="check"><summary>Check yourself</summary><div class="body"><ol>
+    <li>In the factory model, what does one more line add with 0 workers?<span class="a">3.4 units, which is physically impossible: nobody is running it. Zero workers is outside the data, so this is extrapolation.</span></li>
+    <li>A market spends $30k on radio. What is the effect of an extra $1,000 on TV?<span class="a">19.1 + 1.1 × 30 = 52.1 more units sold.</span></li>
+    <li>In Assignment 1 Q2.7, cost × SAT had coefficient −0.0014. What does the negative sign mean?<span class="a">Slope of cost = β₁ − 0.0014 × SAT. At higher-SAT schools, each extra $1,000 of cost is associated with a <strong>smaller increase</strong> in student debt: the effect is weaker, not reversed.</span></li>
+  </ol></div></details>
+</section>
+
+<section class="step" id="l2s4">
+  <h3><span class="n">2.4</span>The hierarchy principle</h3>
+  <p>An interaction can be highly significant while the main effects it's built from are not. In Assignment 1: TEMP (p = 0.59) and PROD (p = 0.27) next to TEMP × PROD (p &lt; 2 × 10⁻¹⁶), and AIRFLOW (p = 0.70) next to two significant AIRFLOW interactions.</p>
+  <div class="key"><strong>The rule:</strong> <mark>if an interaction is in the model, keep both of its main effects, whatever their p-values.</mark></div>
+  <h4>Why</h4>
+  <ol>
+    <li><strong>The main effect's p-value tests the wrong thing.</strong> Once X₁X₂ is in the model, β₁ is X₁'s slope when X₂ = 0. Whether that one slope is zero rarely matters, especially if X₂ = 0 is outside the data.</li>
+    <li><strong>Dropping a main effect distorts the interaction.</strong> X₁X₂ is usually correlated with X₁ and X₂. Remove X₁ and the interaction term has to absorb its job, which changes its meaning.</li>
+  </ol>
+  <div class="tbl"><table>
+    <tr><th>Term</th><th>How you decide</th></tr>
+    <tr><td>An interaction X₁X₂</td><td>Its own t-test</td></tr>
+    <tr><td>A main effect that's <strong>in</strong> a kept interaction</td><td><strong>Keep it</strong>, whatever its p-value</td></tr>
+    <tr><td>A main effect that's <strong>not</strong> in any kept interaction</td><td>Its own t-test, as in an additive model (like RPM in Assignment 1 Q3.4)</td></tr>
+  </table></div>
+  <details class="check"><summary>Check yourself</summary><div class="body"><ol>
+    <li>A model has X₁, X₂, X₃, X₁X₂ and X₂X₃, and both interactions are significant. Which main effects stay?<span class="a">All three. X₁ is in X₁X₂, X₂ is in both interactions, and X₃ is in X₂X₃.</span></li>
+    <li>The only interaction is X₁X₂ (significant). X₁ has p = 0.35 and X₃ has p = 0.40. What do you drop?<span class="a">Drop X₃: it's not in any interaction, so its own t-test decides. Keep X₁: it's part of X₁X₂.</span></li>
+  </ol></div></details>
+</section>
+
+<section class="step" id="l2s5">
+  <h3><span class="n">2.5</span>Which test when</h3>
+  <div class="tbl"><table>
+    <tr><th>Question</th><th>Test</th><th>H₀</th></tr>
+    <tr><td>Is the model useful at all?</td><td>Global F-test</td><td>\(\beta_1 = \dots = \beta_p = 0\)</td></tr>
+    <tr><td>Does one predictor belong?</td><td>Individual t-test</td><td>\(\beta_i = 0\), given the others</td></tr>
+    <tr><td>Can a group of predictors go?</td><td>Partial F-test</td><td>The q tested β's = 0</td></tr>
+    <tr><td>Does Y <em>increase</em> with X?</td><td>One-sided t-test</td><td>\(\beta_i = 0\) vs \(H_a: \beta_i &gt; 0\)</td></tr>
+    <tr><td>Is the additive model enough?</td><td>t-test on the product term</td><td>\(\beta_3 = 0\) (no interaction)</td></tr>
+  </table></div>
+  <h4>Are the t-test and partial F-test interchangeable?</h4>
+  <div class="tbl"><table>
+    <tr><th>Situation</th><th>t-test</th><th>Partial F-test</th></tr>
+    <tr><td>One β, two-sided</td><td>✅</td><td>✅ Same result: F = t², same p-value</td></tr>
+    <tr><td>One β, one-sided</td><td>✅</td><td>❌ F is squared, so it loses the direction</td></tr>
+    <tr><td>Several β's at once</td><td>❌</td><td>✅ Separate t-tests can miss a joint effect</td></tr>
+  </table></div>
+  <h4>One-sided p-values</h4>
+<pre><code>pt(3.106, df = 76, lower.tail = FALSE)   <span class="c"># Ha: beta &gt; 0, with t = +3.106</span></code></pre>
+  <p>This is half the two-sided p-value only when t points the same way as Hₐ. If t were negative with Hₐ: β &gt; 0, the one-sided p-value would be close to 1.</p>
+  <h4>Where to start an interaction search</h4>
+  <p>Unless the question says where to start, test interactions among <strong>all</strong> the predictors, including ones that weren't significant on their own. A predictor that does nothing alone can still matter through an interaction (X₁ in <a href="#l2s7">2.7</a>). If the question names a starting model (as Assignment 1 Q1.7 did), start there.</p>
+  <div class="key"><strong>Remember:</strong> <mark>match the test to the question</mark>: everything, one, a group, a direction, or an interaction.</div>
+</section>
+
+<section class="step" id="l2s6">
+  <h3><span class="n">2.6</span>Practice: arsenic in wells</h3>
+  <p>A kit for testing arsenic in groundwater was tried on 328 wells in Bangladesh. Response: <strong>arsenic</strong> (μg/L). Predictors: latitude, longitude and depth (feet).</p>
+<pre><code>wells.df = read.csv("https://raw.githubusercontent.com/Statman44/Data602/refs/heads/main/ASWELLS.csv")
+wells_add = lm(ARSENIC ~ LATITUDE + LONGITUDE + DEPTH.FT, data = wells.df)
+summary(wells_add)</code></pre>
+  <h4>(a) Additive model</h4>
+  <p>One row has a missing value, so n = 327 and df = 327 − 3 − 1 = 323. Global F = 15.8 on (3, 323), p = 1.3 × 10⁻⁹, so the model is useful.</p>
+  <div class="tbl"><table>
+    <tr><th>Predictor</th><th class="num">Estimate</th><th class="num">t</th><th class="num">p</th><th>Decision</th></tr>
+    <tr><td>LATITUDE</td><td class="num">−2218.76</td><td class="num">−4.212</td><td class="num">3.3 × 10⁻⁵</td><td>Keep</td></tr>
+    <tr><td>LONGITUDE</td><td class="num">1542.16</td><td class="num">4.134</td><td class="num">4.6 × 10⁻⁵</td><td>Keep</td></tr>
+    <tr><td>DEPTH.FT</td><td class="num">−0.3496</td><td class="num">−2.232</td><td class="num">0.026</td><td>Keep</td></tr>
+  </table></div>
+  <p>The intercept (−86,868) is the prediction at latitude 0, longitude 0: a point in the Atlantic, so it has no practical meaning.</p>
+  <h4>(b) Fit</h4>
+  <p>Adjusted R² = 0.1199: about 12% of the variation in arsenic levels is explained. That's <strong>low</strong>. Sₑ = 103.3: predictions of a well's arsenic level are typically off by about 103 μg/L.</p>
+  <p><strong>Significant but weak.</strong> With n = 327, even a weak relationship is very unlikely to be chance, so the F-test rejects easily. The F-test says there is <em>some</em> relationship; adjusted R² says how much it explains.</p>
+  <h4>(c) 10 feet deeper</h4>
+  <p>−0.3496 × 10 = −3.5. Holding latitude and longitude constant, a well 10 feet deeper is associated with about <strong>3.5 μg/L less arsenic</strong>, on average.</p>
+  <h4>(d) and (g): interactions</h4>
+  <div class="tbl"><table>
+    <tr><th>Model</th><th>Interaction tested</th><th class="num">t</th><th class="num">p</th><th class="num">Adj R²</th><th class="num">Sₑ</th></tr>
+    <tr><td>Additive</td><td>—</td><td class="num"></td><td class="num"></td><td class="num">0.1199</td><td class="num">103.3</td></tr>
+    <tr><td>+ Long × Depth</td><td>Long × Depth</td><td class="num">1.606</td><td class="num">0.109</td><td class="num">0.1241</td><td class="num">103.0</td></tr>
+    <tr><td>+ Lat × Depth too</td><td>Lat × Depth</td><td class="num">−0.927</td><td class="num">0.355</td><td class="num">0.1238</td><td class="num">103.1</td></tr>
+  </table></div>
+  <ul>
+    <li><strong>Neither interaction is significant.</strong> Drop Lat × Depth (largest p), then Long × Depth (p = 0.109). Final model: the additive one.</li>
+    <li><strong>Long × Depth raised adjusted R²</strong> even though p = 0.109. That's the |t| &gt; 1 rule: |1.606| &gt; 1. Lat × Depth has |t| &lt; 1, so it lowered adjusted R². When the measures disagree, rely on the t-test.</li>
+    <li><strong>Long × Depth moved from 0.109 to 0.0755</strong> once Lat × Depth was added. p-values shift between models, so drop one term at a time.</li>
+    <li><strong>LATITUDE showed p = 0.23</strong> in the (g) model, but that's its slope at depth 0. Judge main effects in the right model: in the additive model it's highly significant.</li>
+  </ul>
+  <h4>(e) and (f): mean well vs one well</h4>
+<pre><code>new_well = data.frame(LATITUDE = 23.79, LONGITUDE = 90.7, DEPTH.FT = 80)
+predict(wells_add, new_well, interval = "confidence", level = 0.95)   <span class="c"># (e) mean</span>
+predict(wells_add, new_well, interval = "prediction", level = 0.95)   <span class="c"># (f) one well</span></code></pre>
+  <div class="tbl"><table>
+    <tr><th>Part</th><th>Interval</th><th class="num">Fit</th><th>95% interval (μg/L)</th></tr>
+    <tr><td>(e) mean of all such wells</td><td>Confidence</td><td class="num">194.05</td><td>(136.57, 251.53)</td></tr>
+    <tr><td>(f) this particular well</td><td>Prediction</td><td class="num">194.05</td><td>(−17.15, 405.25)</td></tr>
+  </table></div>
+  <p class="warn"><strong>A negative lower bound:</strong> arsenic can't be negative, so the model is predicting something impossible. The residuals are heavily right-skewed (min −134, max +469): most wells are low, a few are very high. A straight-line model with normal errors fits this data poorly. Report the practical range as 0 to 405 μg/L.</p>
+  <div class="key"><strong>Remember:</strong> <mark>a significant model isn't necessarily a good one.</mark> Check adjusted R², Sₑ and whether predictions make sense.</div>
+</section>
+
+<section class="step" id="l2s7">
+  <h3><span class="n">2.7</span>Practice: sales districts</h3>
+  <p>40 sales districts. Y = sales ($100,000s); X₁ = promotional spending ($1000s); X₂ = active accounts; X₃ = competing brands. X₄ (district potential) is left out: it's a category coded as numbers.</p>
+<pre><code>Sales = read.csv("https://raw.githubusercontent.com/DanikaLipman/DATA603/main/sales.csv")</code></pre>
+  <h4>(a) Best additive model</h4>
+  <p>The full model is useful (F = 133.4 on (3, 36), p &lt; 2.2 × 10⁻¹⁶). X₁ has p = 0.438, so drop it. In the refit, X₂ and X₃ both have p ≈ 10⁻¹², so this is <strong>sales_model</strong>:</p>
+\[\widehat{Y} = 172.46 + 3.5011X_2 - 19.7308X_3 \qquad R^2_{adj} = 0.9115,\; S_e = 25.22\]
+  <p>X₁ had |t| = 0.784 &lt; 1, so dropping it raised adjusted R² (0.9106 → 0.9115), as predicted.</p>
+  <h4>(b) Best interaction model</h4>
+  <p>Start from <strong>all three</strong> predictors, including X₁:</p>
+<pre><code>sales_int = lm(Y ~ (X1 + X2 + X3)^2, data = Sales)
+sales_model_interaction = update(sales_int, . ~ . - X1:X2)</code></pre>
+  <div class="tbl"><table>
+    <tr><th>Step</th><th>Interaction</th><th class="num">p</th><th>Decision</th></tr>
+    <tr><td>1</td><td>X₁:X₂</td><td class="num">0.586</td><td>Drop (largest)</td></tr>
+    <tr><td>2</td><td>X₁:X₃</td><td class="num">0.030</td><td>Keep</td></tr>
+    <tr><td>2</td><td>X₂:X₃</td><td class="num">0.036</td><td>Keep</td></tr>
+  </table></div>
+\[\widehat{Y} = -55.08 + 18.4248X_1 + 5.5102X_2 + 6.9378X_3 - 2.1387X_1X_3 - 0.2524X_2X_3\]
+  <p>X₃ has p = 0.378 on its own but stays (hierarchy). <strong>X₁ came back</strong> through its interaction with X₃: promotion looked useless alone, but its effect depends on the competition.</p>
+  <h4>(c) Which model?</h4>
+  <div class="tbl"><table>
+    <tr><th>Model</th><th class="num">Adjusted R²</th><th class="num">Sₑ</th></tr>
+    <tr><td>Additive (X₂, X₃)</td><td class="num">0.9115</td><td class="num">25.22</td></tr>
+    <tr><td>Interaction</td><td class="num"><strong>0.9305</strong></td><td class="num"><strong>22.35</strong></td></tr>
+  </table></div>
+  <p>The interaction model wins on both: higher adjusted R² and lower Sₑ (predictions typically off by about $2.24 million instead of $2.52 million).</p>
+  <h4>(d) Interpreting X₃</h4>
+\[\text{slope of } X_3 = 6.9378 - 2.1387X_1 - 0.2524X_2\]
+  <p>At X₁ = 2.7 and X₂ = 42: 6.9378 − 5.7745 − 10.6008 = <strong>−9.44</strong>. Each extra competing brand is associated with about <strong>$944,000 less</strong> in sales, holding promotion and accounts at those values. Both interaction coefficients are negative: <strong>competitors hurt more where there's more business to take</strong> (more promotion, more accounts).</p>
+  <h4>(e) Prediction for one district</h4>
+<pre><code>new_district = data.frame(X1 = 2.7, X2 = 42, X3 = 10)
+predict(sales_model_interaction, new_district, interval = "prediction", level = 0.95)</code></pre>
+<pre class="out">       fit      lwr      upr
+1 131.6995 83.8576 179.5414</pre>
+  <p><em>"We are 95% confident that a district with $2,700 of promotional spending, 42 active accounts and 10 competing brands will have sales between about $8.39 million and $17.95 million, with a predicted value of about $13.17 million."</em> Check the inputs are inside the data with <code>summary(Sales)</code>.</p>
+  <div class="key"><strong>Remember:</strong> <mark>test interactions before ruling a predictor out.</mark> X₁ was dropped from the additive model but mattered through X₁:X₃.</div>
+  <details class="check"><summary>Check yourself</summary><div class="body"><ol>
+    <li>Why start the interaction search with X₁, even though it was dropped in (a)?<span class="a">A predictor that does nothing on its own can still matter through an interaction. Here X₁:X₃ was significant (p = 0.030).</span></li>
+    <li>Why does X₃ stay in the interaction model with p = 0.378?<span class="a">Hierarchy: it's part of both kept interactions, and its own p-value is its slope when X₁ = X₂ = 0.</span></li>
+    <li>Recompute the X₃ slope for X₁ = 2.7 and X₂ = 42.<span class="a">2.1387 × 2.7 = 5.77; 0.2524 × 42 = 10.60; 6.94 − 5.77 − 10.60 ≈ −9.44.</span></li>
+  </ol></div></details>
+</section>
+
 <!-- ============ REFERENCE ============ -->
 <div class="part" id="reference">
   <div class="eyebrow">Quick reference</div>
@@ -690,7 +929,8 @@ summary(condo_no_bed)</code></pre>
     <div><b>Global F-test</b><span>Fail to reject → stop. No t-test hunting.</span></div>
     <div><b>Individual t-tests</b><span>Which predictors look weak, given the others?</span></div>
     <div><b>Drop one at a time</b><span>Largest p-value first. Refit after each drop and confirm with <code>anova(reduced, full)</code>.</span></div>
-    <div><b>Compare models</b><span>Adjusted R² (higher is better) and RSE (lower is better). Never plain R².</span></div>
+    <div><b>Test interactions</b><span>Fit all two-way interactions, <code>(x1 + x2 + x3)^2</code>, from all predictors unless told otherwise. Drop the largest interaction p-value one at a time; keep main effects that are in kept interactions.</span></div>
+    <div><b>Compare models</b><span>Additive vs interaction: adjusted R² (higher is better) and RSE (lower is better). Never plain R².</span></div>
     <div><b>Predict</b><span>Prediction interval for one new case, inside the data range.</span></div>
   </div>
 </section>
@@ -712,6 +952,11 @@ summary(condo_no_bed)</code></pre>
     <tr><td>Confidence interval for the mean</td><td><code>predict(m, newdata, interval = "confidence")</code></td></tr>
     <tr><td>Design matrix</td><td><code>model.matrix(sale ~ tv + radio, data = Advertising)</code></td></tr>
     <tr><td>Data ranges</td><td><code>summary(data)</code></td></tr>
+    <tr><td>One interaction (with both main effects)</td><td><code>lm(y ~ x1*x2)</code> = <code>x1 + x2 + x1:x2</code></td></tr>
+    <tr><td>All two-way interactions</td><td><code>lm(y ~ (x1 + x2 + x3)^2)</code></td></tr>
+    <tr><td>Drop one term and refit</td><td><code>update(model, . ~ . - x1:x2)</code></td></tr>
+    <tr><td>One-sided p-value (Hₐ: β &gt; 0)</td><td><code>pt(t, df, lower.tail = FALSE)</code></td></tr>
+    <tr><td>Automated backward elimination</td><td><code>olsrr::ols_step_backward_p(model, p_val = 0.06)</code></td></tr>
   </table></div>
 </section>
 
@@ -731,6 +976,9 @@ summary(condo_no_bed)</code></pre>
     <tr><td>Adjusted R²</td><td>\(1 - \dfrac{SSE/(n-p-1)}{SST/(n-1)}\)</td><td></td></tr>
     <tr><td>RSE</td><td>\(\sqrt{MSE}\)</td><td></td></tr>
     <tr><td>Least squares</td><td>\(\hat\beta = (X'X)^{-1}X'y\)</td><td></td></tr>
+    <tr><td>Interaction model</td><td>\(Y = \beta_0 + \beta_1X_1 + \beta_2X_2 + \beta_3X_1X_2 + \epsilon\)</td><td></td></tr>
+    <tr><td>Slope of \(X_1\) with interaction</td><td>\(\beta_1 + \beta_3X_2\)</td><td></td></tr>
+    <tr><td>One predictor: t vs F</td><td>\(F = t^2\), same two-sided p-value</td><td>\((1,\; n-p-1)\)</td></tr>
   </table></div>
 </section>
 
@@ -753,11 +1001,21 @@ summary(condo_no_bed)</code></pre>
     <div><b>Comparing models with plain R²</b><span>Use adjusted R² and RSE.</span></div>
     <div><b>Confidence interval for one new case</b><span>Use a prediction interval.</span></div>
     <div><b>Saying "if it's in range" without checking</b><span>Apply the rule to the numbers given and commit to an answer.</span></div>
+    <div><b>Interpreting β₁ alone in an interaction model</b><span>It's only X₁'s slope when X₂ = 0. Use β₁ + β₃X₂ with a realistic X₂.</span></div>
+    <div><b>Reading a negative interaction as "Y decreases"</b><span>It means X₁'s effect gets weaker as X₂ grows, not that Y goes down.</span></div>
+    <div><b>Dropping a main effect that's in a kept interaction</b><span>Hierarchy principle: keep it, whatever its p-value.</span></div>
+    <div><b>Keeping a main effect just because others are protected</b><span>A main effect in no kept interaction is judged by its own t-test.</span></div>
+    <div><b>Dropping a predictor before testing its interactions</b><span>Unless told where to start, test interactions among all predictors (X₁ in the sales problem).</span></div>
+    <div><b>Dropping several interactions at once</b><span>One at a time, largest p first. p-values shift after each refit.</span></div>
+    <div><b>Trusting adjusted R² over the t-test</b><span>Adjusted R² rises whenever |t| &gt; 1, which is a lower bar than significance.</span></div>
+    <div><b>Using ≠ for a "does it increase?" question</b><span>That's one-sided: Hₐ: β &gt; 0, with a one-tailed p-value.</span></div>
+    <div><b>Reusing a template without changing every number</b><span>Read the decision back against your own p-value.</span></div>
   </div>
 </section>
 
 <section class="step" id="errata">
   <h3><span class="n">R5</span>Corrections to the lecture notes</h3>
+  <h4>Lecture 1</h4>
   <div class="tbl"><table>
     <tr><th>In the notes</th><th>Should be</th></tr>
     <tr><td>R² called the "Sample Correlation Coefficient"</td><td>The <strong>coefficient of determination</strong>; the correlation is r</td></tr>
@@ -769,10 +1027,20 @@ summary(condo_no_bed)</code></pre>
     <tr><td>Prediction example called a "95% confidence interval"</td><td><code>interval = "predict"</code> gives a <strong>prediction interval</strong></td></tr>
     <tr><td>Toddler plot subtitle "Height and Weight"</td><td>Height and <strong>Age</strong></td></tr>
   </table></div>
+  <h4>Lecture 2</h4>
+  <div class="tbl"><table>
+    <tr><th>In the notes</th><th>Should be</th></tr>
+    <tr><td>Clock equations: "(1 + 5(1.5)X_Age"</td><td>A missing bracket: <strong>(1 + 5(1.5))X_Age</strong></td></tr>
+    <tr><td>3D clock plot uses <code>clocks.df</code></td><td>The data was loaded as <code>gfclock.df</code></td></tr>
+    <tr><td>Interaction Hₐ ends with "(i = 1, 2, …, p)"</td><td>Just βᵢ ≠ 0 for the interaction term being tested</td></tr>
+    <tr><td>TV take-away: increase "in $s"</td><td>Sales are in <strong>units</strong>, as in the radio line</td></tr>
+    <tr><td>Arsenic (f): "confidence interval" for one well</td><td>A single well needs a <strong>prediction interval</strong></td></tr>
+    <tr><td>Sales (e): "confidence interval of your predicted value"</td><td>For one district's sales, use a <strong>prediction interval</strong></td></tr>
+  </table></div>
 </section>
 
 <footer>
-  DATA 603 · University of Calgary · Personal revision notes covering Lecture 1 (Multiple Linear Regression). Written in my own words from the lecture notes by Danika Lipman (based on content by Thuntida Ngamkham, with additions by Jim Stallard) and <em>An Introduction to Statistical Learning</em>.<br>
+  DATA 603 · University of Calgary · Personal revision notes covering Lecture 1 (Multiple Linear Regression) and Lecture 2 (Interaction Models). Written in my own words from the lecture notes by Danika Lipman (based on content by Thuntida Ngamkham, with additions by Jim Stallard) and <em>An Introduction to Statistical Learning</em>.<br>
   <a class="totop" href="#start">Back to top</a>
 </footer>
 
