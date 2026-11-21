@@ -158,7 +158,7 @@ footer{margin-top:80px;color:var(--muted);font-size:14px;border-top:1px solid va
 
 <div class="shell">
 <nav class="rail" id="rail" aria-label="Contents">
-  <div class="brand">DATA 603 Revision Guide<small>Regression, interactions, dummy variables and curves in R</small></div>
+  <div class="brand">DATA 603 Revision Guide<small>Regression, interactions, dummies, curves and model selection in R</small></div>
   <label for="navFilter" style="position:absolute;left:-9999px">Filter topics</label>
   <input class="filter" id="navFilter" type="search" placeholder="Find a topic, e.g. RSE, partial F" autocomplete="off">
 
@@ -221,6 +221,20 @@ footer{margin-top:80px;color:var(--muted);font-size:14px;border-top:1px solid va
     </ol>
   </div>
   <div class="navgroup">
+    <h2>Lecture 4 · Model selection</h2>
+    <ol>
+      <li><a href="#l4s1"><span class="n">4.1</span>Why model selection</a></li>
+      <li><a href="#l4s2"><span class="n">4.2</span>Forward, backward, stepwise</a></li>
+      <li><a href="#l4s3"><span class="n">4.3</span>Cautions</a></li>
+      <li><a href="#l4s4"><span class="n">4.4</span>Criteria: adj R², Cₚ, AIC, BIC</a></li>
+      <li><a href="#l4s5"><span class="n">4.5</span>Best subsets in R</a></li>
+      <li><a href="#l4s6"><span class="n">4.6</span>Stepwise vs best subsets</a></li>
+      <li><a href="#l4s7"><span class="n">4.7</span>Improving the chosen model</a></li>
+      <li><a href="#l4s8"><span class="n">4.8</span>Practice: credit balance</a></li>
+      <li><a href="#l4s9"><span class="n">4.9</span>Practice: clerical hours</a></li>
+    </ol>
+  </div>
+  <div class="navgroup">
     <h2>Quick reference</h2>
     <ol>
       <li><a href="#workflow"><span class="n">R1</span>The modelling workflow</a></li>
@@ -240,7 +254,7 @@ footer{margin-top:80px;color:var(--muted);font-size:14px;border-top:1px solid va
 <!-- ============ START ============ -->
 <section class="hero" id="start">
   <h1>Everything from DATA 603 so far, one step at a time</h1>
-  <p>Lecture 1 covers multiple linear regression: fitting a model, testing it, comparing models and predicting. Lecture 2 adds interaction terms, for when one predictor's effect depends on another. Lecture 3 adds categorical predictors (dummy variables) and curved models. Each step explains the idea and the R code, then ends with a <em>Check yourself</em> box. Try the questions before you open the answers.</p>
+  <p>Lecture 1 covers multiple linear regression: fitting a model, testing it, comparing models and predicting. Lecture 2 adds interaction terms, for when one predictor's effect depends on another. Lecture 3 adds categorical predictors (dummy variables) and curved models. Lecture 4 covers choosing predictors when there are many candidates. Each step explains the idea and the R code, then ends with a <em>Check yourself</em> box. Try the questions before you open the answers.</p>
   <div class="howto">
     <div><b>Jump around</b>Use the contents list, or type a word like <code>adjusted</code> into the search box to find it.</div>
     <div><b>Highlighted text</b><mark>Yellow</mark> marks the one idea to remember from each step.</div>
@@ -1166,6 +1180,214 @@ lm(QUALITY ~ PRESSURE + I(PRESSURE^2) + I(PRESSURE^3) + I(PRESSURE^4), data = pr
   <div class="key"><strong>Remember:</strong> <mark>keep adding a power only while the new top term is significant.</mark></div>
 </section>
 
+<!-- ============ LECTURE 4 ============ -->
+<div class="part" id="lecture4">
+  <div class="eyebrow">Lecture 4</div>
+  <h2>Model selection procedures</h2>
+  <p>Choosing predictors when there are many candidates: stepwise, backward and forward selection, best subsets with Cₚ, AIC and BIC, then interactions and curves. Executive salary, credit balance and clerical hours.</p>
+</div>
+
+<section class="step" id="l4s1">
+  <h3><span class="n">4.1</span>Why model selection</h3>
+  <p>Each candidate predictor is either in or out of the model, so <strong>p predictors give 2ᵖ possible additive models</strong>: 32 for 5 predictors, 1,024 for 10, over a trillion for 40. That's before interactions or squared terms. You need a systematic way to choose.</p>
+  <h4>Executive salary data (n = 100)</h4>
+  <div class="tbl"><table>
+    <tr><th>Quantitative</th><th>Dummy (1 = yes)</th></tr>
+    <tr><td>Years of experience, years of education, employees supervised, corporate assets ($M), age, company profits ($M), company sales ($M)</td><td>Bonus eligible, board member, international responsibility</td></tr>
+  </table></div>
+  <h4>The general process</h4>
+  <ol>
+    <li><strong>Specify the maximum model:</strong> every candidate predictor.</li>
+    <li><strong>Choose a strategy:</strong> t-tests (stepwise, backward, forward) or a criterion (adjusted R², Cₚ, AIC, BIC).</li>
+    <li><strong>Evaluate the chosen model:</strong> then test interactions and curves.</li>
+  </ol>
+  <div class="key"><strong>Remember:</strong> <mark>p predictors → 2ᵖ models</mark> (2, not p, because each predictor has two states: in or out).</div>
+</section>
+
+<section class="step" id="l4s2">
+  <h3><span class="n">4.2</span>Forward, backward and stepwise</h3>
+  <div class="tbl"><table>
+    <tr><th>Method</th><th>Starts with</th><th>Each step</th><th>Weakness</th></tr>
+    <tr><td><strong>Forward</strong></td><td>No predictors</td><td>Add the remaining predictor with the smallest p-value, if it's below the cutoff</td><td>Once in, a predictor never leaves, even if it becomes useless later</td></tr>
+    <tr><td><strong>Backward</strong></td><td>All predictors</td><td>Remove the predictor with the largest p-value, if it's above the cutoff</td><td>Once out, a predictor never returns; needs n well above the number of predictors</td></tr>
+    <tr><td><strong>Stepwise</strong></td><td>No predictors</td><td>Add the best predictor, then <strong>re-check</strong> everything already in and remove any that became weak</td><td>Follows one path, so it can still miss the best model</td></tr>
+  </table></div>
+  <p>The re-check matters because predictors overlap. Once a second predictor is in, the first one's t-test only measures what it adds <em>beyond</em> the second, which may be little (newspaper once radio was in).</p>
+  <h4>The cutoffs</h4>
+<pre><code>library(olsrr)
+step_mod = ols_step_both_p(full_model, p_enter = 0.1, p_remove = 0.3, details = TRUE)   <span class="c"># stepwise</span>
+back_mod = ols_step_backward_p(full_model, p_val = 0.2, details = TRUE)                <span class="c"># backward</span>
+fwd_mod  = ols_step_forward_p(full_model, p_val = 0.2, details = FALSE)                <span class="c"># forward</span>
+summary(step_mod$model)                                                              <span class="c"># the selected model</span></code></pre>
+  <div class="lines">
+    <div><code>p_enter</code><span>Stepwise: the best remaining predictor enters only if its p-value is <strong>below</strong> this.</span></div>
+    <div><code>p_remove</code><span>Stepwise: a predictor already in is dropped if its p-value rises <strong>above</strong> this. Set higher than p_enter, so predictors don't bounce in and out.</span></div>
+    <div><code>p_val</code><span>Forward: the entry bar. Backward: the exit bar. One cutoff, because each goes one way only.</span></div>
+  </div>
+  <p>A <strong>higher cutoff is more lenient</strong> (0.2 keeps more predictors than 0.05). It only matters for predictors whose p-values fall between the two values. The full model you pass in is just the list of candidates.</p>
+  <h4>Stepwise by hand on the salary data</h4>
+  <ol>
+    <li>Best single predictor: <strong>experience</strong> (F = 159.2): \(\hat Y = 11.091 + 0.0278X_{exper}\)</li>
+    <li>Best addition: <strong>bonus</strong> (t = 7.10); experience re-checked and still significant (t = 15.13): \(\hat Y = 10.968 + 0.0273X_{exper} + 0.197X_{bonus}\), adjusted R² = 0.744</li>
+    <li>Repeat until no remaining predictor is significant.</li>
+  </ol>
+  <p><strong>All three methods</strong> chose the same five predictors:</p>
+\[\hat Y = 9.9619 + 0.0273X_{exper} + 0.2247X_{bonus} + 0.00052X_{no\_emp} + 0.0291X_{edu} + 0.0120X_{assets} \qquad R^2_{adj} = 0.9164,\; S_e = 0.0715\]
+  <p>Backward removed sales (p = 0.742), then age (p = 0.768), then profits, board and international responsibility.</p>
+  <h4>Which method to use</h4>
+  <ul>
+    <li>If the question names one, use it.</li>
+    <li>Otherwise default to <strong>stepwise</strong>; <strong>backward</strong> works well when n is large relative to the number of predictors; <strong>forward</strong> when there are too many predictors to fit at once; <strong>best subsets</strong> when there are only a few.</li>
+    <li>Run more than one. If they agree, you can be confident; if not, look closely at the predictors they differ on.</li>
+  </ul>
+  <div class="key"><strong>Remember:</strong> <mark>forward and stepwise start empty and add; only backward starts full.</mark> Stepwise is forward with a re-check.</div>
+  <details class="check"><summary>Check yourself</summary><div class="body"><ol>
+    <li>How many additive models are possible with 5 predictors?<span class="a">2⁵ = 32, including the model with no predictors.</span></li>
+    <li>What weakness of forward selection does stepwise fix?<span class="a">Forward never removes a predictor, even one that becomes useless once others join. Stepwise re-checks after every step and removes any predictor whose p-value rises above p_remove.</span></li>
+    <li>Backward with p_val = 0.05 or 0.2: which keeps more predictors?<span class="a">0.2. It only removes predictors with p &gt; 0.2, so anything between 0.05 and 0.2 survives.</span></li>
+  </ol></div></details>
+</section>
+
+<section class="step" id="l4s3">
+  <h3><span class="n">4.3</span>Cautions</h3>
+  <ul>
+    <li><strong>Many tests, many false positives.</strong> Automatic methods run a large number of t-tests, so some predictors can get in by chance. Use them to <strong>screen</strong> a long list, not as proof of what truly matters.</li>
+    <li><strong>They can break the hierarchy principle</strong> when interactions are candidates: check every kept interaction's main effects are in the model.</li>
+    <li><strong>They can split a category's dummies</strong> (e.g. keep the Asian dummy without the Caucasian one). Keep or drop a category's dummies together.</li>
+  </ul>
+  <p>R also has <code>MASS::stepAIC()</code>, which runs forward, backward or stepwise selection using AIC instead of p-values.</p>
+</section>
+
+<section class="step" id="l4s4">
+  <h3><span class="n">4.4</span>Criteria: adjusted R², Cₚ, AIC, BIC</h3>
+  <p><strong>All-possible-regressions</strong> fits every model (or the best model of each size) and scores each one with a criterion.</p>
+  <div class="tbl"><table>
+    <tr><th>Criterion</th><th>Better is</th><th>Penalty for extra predictors</th></tr>
+    <tr><td>R²</td><td>Higher</td><td>None: always rises, so it can't choose between sizes</td></tr>
+    <tr><td>Adjusted R² / Sₑ</td><td>Higher / lower (equivalent)</td><td>Light: tends to allow a slightly bigger model</td></tr>
+    <tr><td>Mallows' Cₚ</td><td>Lower, and close to the number of parameters (p + 1)</td><td>Moderate</td></tr>
+    <tr><td>AIC</td><td>Lower</td><td>Moderate</td></tr>
+    <tr><td>BIC</td><td>Lower</td><td><strong>Heaviest</strong>: tends to pick the smallest model</td></tr>
+  </table></div>
+\[C_p = \frac{SSE_p}{MSE_{full}} + 2(p+1) - n\]
+\[AIC = n\ln\!\left(\frac{SSE}{n}\right) + 2(p+1)\]
+\[BIC = n\ln\!\left(\frac{SSE}{n}\right) + (p+1)\ln(n)\]
+  <p>Here p is the number of predictors, so p + 1 counts the parameters including the intercept. For the full model, Cₚ equals p + 1 exactly. A subset with Cₚ well <strong>above</strong> p + 1 is probably missing something important (biased).</p>
+  <h4>When criteria disagree</h4>
+  <ol>
+    <li>Look for a size that most criteria accept.</li>
+    <li>Fit the candidate models and check whether the extra terms are actually significant.</li>
+    <li><strong>Parsimony:</strong> when two models fit about equally well, prefer the simpler one: less overfitting, easier to interpret, more reliable estimates. "About equally" means a gain that's small in practical terms (Sₑ falling by under a dollar out of 63, not 63 to 50).</li>
+  </ol>
+  <div class="key"><strong>Remember:</strong> <mark>adjusted R² is the only criterion here where higher is better.</mark> Sₑ, Cₚ, AIC and BIC: lower is better.</div>
+</section>
+
+<section class="step" id="l4s5">
+  <h3><span class="n">4.5</span>Best subsets in R</h3>
+<pre><code><span class="c"># Option 1: olsrr (R², adjusted R², Cp, AIC; no BIC)</span>
+best = ols_step_best_subset(full_model)
+best$metrics
+
+<span class="c"># Option 2: leaps (R², adjusted R², Cp, BIC, RSS; no AIC)</span>
+library(leaps)
+subsets = regsubsets(Monthly_Salary ~ ., data = exec_sal.df, nvmax = 10)   <span class="c"># default stops at 8</span>
+s = summary(subsets)
+cbind(rsq = s$rsq, adjr2 = s$adjr2, cp = s$cp, bic = s$bic)
+s$which                                                                    <span class="c"># which predictors at each size</span></code></pre>
+  <h4>How <code>regsubsets</code> works</h4>
+  <ol>
+    <li>For each size (1 predictor, 2, … up to <code>nvmax</code>), it finds the combination with the <strong>lowest SSE</strong>. Within one size every criterion agrees, so SSE is a fair choice.</li>
+    <li>You then <strong>compare across sizes</strong> with adjusted R², Cₚ or BIC.</li>
+  </ol>
+  <p>It's exhaustive by default (with a shortcut, so it doesn't literally fit every model), so unlike stepwise it can't get stuck on a bad path. <code>method = "forward"</code> or <code>"backward"</code> are also available. It treats each dummy as a separate column, so watch for split categories.</p>
+  <p>For the salary data, the criteria mostly point to the same <strong>five predictors</strong> the stepwise methods found.</p>
+</section>
+
+<section class="step" id="l4s6">
+  <h3><span class="n">4.6</span>Stepwise vs best subsets</h3>
+  <div class="tbl"><table>
+    <tr><th></th><th>Stepwise</th><th>Best subsets</th></tr>
+    <tr><td>Pros</td><td>Fast, automatic, gives one model</td><td>Checks every combination; guaranteed best model for each criterion; lets you compare close competitors</td></tr>
+    <tr><td>Cons</td><td>Follows one path, so it may miss the best model</td><td>Slow with many predictors; several near-equal models can be confusing</td></tr>
+    <tr><td>Use when</td><td>Many predictors (40 → 2⁴⁰ models is impractical)</td><td>A manageable number of predictors</td></tr>
+  </table></div>
+</section>
+
+<section class="step" id="l4s7">
+  <h3><span class="n">4.7</span>Improving the chosen model</h3>
+  <p>Selection methods look at <strong>main effects only</strong>. Once you have your predictors, test interactions and curves, as in Lectures 2 and 3.</p>
+  <h4>Executive salary, from the five selected predictors</h4>
+<pre><code>lm(Monthly_Salary ~ (Yrs_Exper + Yrs_Edu + Bonus_Elig + No_Emp_Super + Cor_Assets)^2, data = exec_sal.df)
+library(GGally); ggpairs(...)    <span class="c"># scatterplot matrix to spot curvature</span></code></pre>
+  <ul>
+    <li><strong>Interactions:</strong> of 10, only Bonus × Employees (p = 0.032) and Bonus × Assets (p = 0.087, a judgement call) were kept. Adjusted R² rose from 0.916 to 0.923.</li>
+    <li><strong>Curvature:</strong> the scatterplots suggested a curved effect of experience. Adding experience² raised adjusted R² to <strong>0.936</strong>.</li>
+  </ul>
+  <p><strong>Bonus × Assets at α = 0.05:</strong> strictly, p = 0.087 isn't significant. Drop it, refit, and check whether Bonus × Employees stays significant and whether adjusted R² and Sₑ change much. If you drop it, Assets is judged by its own t-test again (no longer protected by hierarchy).</p>
+  <div class="key"><strong>Remember:</strong> <mark>select main effects → test interactions → check for curvature.</mark></div>
+</section>
+
+<section class="step" id="l4s8">
+  <h3><span class="n">4.8</span>Practice: credit balance</h3>
+  <h4>(a)–(b) Stepwise, backward and forward</h4>
+<pre><code>credit_full = lm(Balance ~ Income + Limit + Rating + Cards + Age + Education +
+                 Gender + Student + Married + Ethnicity, data = credit.df)
+ols_step_both_p(credit_full, p_enter = 0.1, p_remove = 0.3)
+ols_step_backward_p(credit_full, p_val = 0.05);  ols_step_backward_p(credit_full, p_val = 0.2)
+ols_step_forward_p(credit_full, p_val = 0.05);   ols_step_forward_p(credit_full, p_val = 0.2)</code></pre>
+  <p><strong>Every method and cutoff chose the same six predictors</strong> (stepwise added them in the order Rating, Income, Student, Limit, Cards, Age): adjusted R² = 0.954, Sₑ = 98.61. The cutoff made no difference because there were no borderline cases: the dropped predictors had p from about 0.23 to 0.49, the kept ones were all below 0.05.</p>
+  <h4>Prediction from the selected model</h4>
+<pre><code>new_person = data.frame(Income = 105, Limit = 8000, Rating = 680, Cards = 3, Age = 60, Student = "No")
+predict(credit_back$model, new_person, interval = "prediction")</code></pre>
+  <p>Predicted balance about <strong>$1,422</strong>; 95% prediction interval about <strong>$1,202 to $1,643</strong>. Education, gender and ethnicity aren't in the model, so they don't affect it. Student must be the text <code>"No"</code>, matching the data.</p>
+  <h4>Best subsets</h4>
+  <div class="tbl"><table>
+    <tr><th class="num">Size</th><th class="num">Adj R²</th><th class="num">Cₚ</th><th class="num">BIC</th><th>Predictors</th></tr>
+    <tr><td class="num">3</td><td class="num">0.9495</td><td class="num">41.13</td><td class="num">−1173.4</td><td>Income, Rating, Student</td></tr>
+    <tr><td class="num">4</td><td class="num">0.9531</td><td class="num">11.15</td><td class="num"><strong>−1198.1</strong></td><td>Income, Limit, Cards, Student</td></tr>
+    <tr><td class="num">5</td><td class="num">0.9536</td><td class="num">8.13</td><td class="num">−1197.1</td><td>+ Rating</td></tr>
+    <tr><td class="num">6</td><td class="num">0.95400</td><td class="num"><strong>5.57</strong></td><td class="num">−1195.7</td><td>+ Age</td></tr>
+    <tr><td class="num">7</td><td class="num"><strong>0.95401</strong></td><td class="num">6.46</td><td class="num">−1190.9</td><td>+ Gender</td></tr>
+    <tr><td class="num">8</td><td class="num">0.9540</td><td class="num">7.85</td><td class="num">−1185.5</td><td>+ Asian dummy only (split category)</td></tr>
+  </table></div>
+  <p>BIC picks 4 (heaviest penalty), Cₚ picks 6, adjusted R² picks 7, but its gain over 6 is negligible. At size 4 Rating drops out because it carries nearly the same information as Limit. <strong>Choose 6</strong>: lowest Cₚ (5.57, below its 7 parameters), adjusted R² essentially tied with 7, BIC close to its minimum, and it matches all three stepwise methods.</p>
+  <h4>(c)–(d) Stepwise on the interaction model</h4>
+<pre><code>credit_int = lm(Balance ~ (Income + Limit + Rating + Cards + Age + Student)^2, data = credit.df)
+ols_step_both_p(credit_int, p_enter = 0.1, p_remove = 0.3)</code></pre>
+  <p>Stepwise kept six interactions: Income × Student, Rating × Limit, Rating × Income, Student × Limit, plus Rating × Age and Income × Age. The hierarchy check passes (Rating, p = 0.89, and Age, p = 0.26, stay because they're in kept interactions).</p>
+  <div class="tbl"><table>
+    <tr><th>Model</th><th class="num">Interactions</th><th class="num">Adjusted R²</th><th class="num">Sₑ</th></tr>
+    <tr><td>Lecture 3 (by hand)</td><td class="num">4</td><td class="num">0.9809</td><td class="num">63.6</td></tr>
+    <tr><td>Stepwise</td><td class="num">6</td><td class="num">0.9813</td><td class="num">62.95</td></tr>
+  </table></div>
+  <p>Either is defensible with a reason. The stepwise model wins narrowly on both measures, but the gain (under $1 of Sₑ) is tiny for two extra terms, so parsimony favours the Lecture 3 model.</p>
+</section>
+
+<section class="step" id="l4s9">
+  <h3><span class="n">4.9</span>Practice: clerical staff hours</h3>
+  <p>Daily hours worked (Y) on 52 days, from seven counts: X1 mail, X2 money orders and gift certificates, X3 window payments, X4 change orders, X5 checks cashed, X6 miscellaneous mail, X7 bus tickets.</p>
+<pre><code>clerical.df = read.csv("https://raw.githubusercontent.com/Statman44/Data602/refs/heads/main/CLERICAL.csv")
+clerical_full = lm(Y ~ X1 + X2 + X3 + X4 + X5 + X6 + X7, data = clerical.df)
+ols_step_both_p(clerical_full, p_enter = 0.05, p_remove = 0.05)</code></pre>
+  <h4>Stepwise</h4>
+\[\widehat{Hours} = 77.73 + 0.0583X_5 + 0.1363X_2 - 0.0347X_4 \qquad R^2_{adj} = 0.448,\; S_e = 11.54\]
+  <p>Entered in the order X5 (p ≈ 2.5 × 10⁻⁷), X2 (p = 0.004), X4 (p = 0.049, only just). The <strong>negative sign on X4</strong> is surprising (more change orders should take more time). It could reflect overlap with the other predictors, or chance, given its borderline p-value and the many tests stepwise ran. Note that the sign doesn't affect the p-value: only |t| does.</p>
+  <h4>Best subsets</h4>
+  <div class="tbl"><table>
+    <tr><th class="num">Size</th><th>Predictors</th><th class="num">Adj R²</th><th class="num">Cₚ</th><th class="num">BIC</th></tr>
+    <tr><td class="num">3</td><td>X2, X4, X5</td><td class="num">0.448</td><td class="num">8.95</td><td class="num"><strong>−18.26</strong></td></tr>
+    <tr><td class="num">4</td><td>+ X6</td><td class="num">0.477</td><td class="num">7.11</td><td class="num">−18.22</td></tr>
+    <tr><td class="num">5</td><td>+ X3</td><td class="num">0.496</td><td class="num"><strong>6.38</strong></td><td class="num">−17.24</td></tr>
+    <tr><td class="num">6</td><td>+ X1</td><td class="num"><strong>0.502</strong></td><td class="num">6.76</td><td class="num">−15.13</td></tr>
+  </table></div>
+  <p>The criteria disagree more here: BIC picks 3 (nearly tied with 4), Cₚ picks 5 (6.38 vs its target of 6; size 3's 8.95 is well above its target of 4), adjusted R² picks 6, and unlike the credit data it keeps climbing.</p>
+  <h4>Settling it: check the bigger model's t-tests</h4>
+  <p>In the 5-predictor model, X3 (p = 0.107), X6 (p = 0.085) <em>and</em> X2 (p = 0.092) aren't significant; only X4 and X5 are. The fit is a little better (Sₑ 11.04 vs 11.54) but three of five terms aren't significant, so the <strong>3-predictor model</strong> is the better-supported choice.</p>
+  <h4>Interactions</h4>
+  <p>All three two-way interactions among X2, X4 and X5 have p &gt; 0.6, and the fit gets worse (adjusted R² 0.448 → 0.416, Sₑ 11.54 → 11.87). Final model: the additive 3-predictor model above. It explains only about 45% of the variation in hours, so many other factors drive daily workload.</p>
+  <div class="key"><strong>Remember:</strong> <mark>when the criteria disagree, fit the candidates and look at their t-tests.</mark> Name the trade-off in your answer.</div>
+</section>
+
 <!-- ============ REFERENCE ============ -->
 <div class="part" id="reference">
   <div class="eyebrow">Quick reference</div>
@@ -1177,6 +1399,7 @@ lm(QUALITY ~ PRESSURE + I(PRESSURE^2) + I(PRESSURE^3) + I(PRESSURE^4), data = pr
   <div class="flow">
     <div><b>Fit the full model</b><span>All candidate predictors: <code>lm(y ~ x1 + x2 + ...)</code>. Wrap categories stored as numbers in <code>factor()</code>; look at a scatterplot for curvature.</span></div>
     <div><b>Global F-test</b><span>Fail to reject → stop. No t-test hunting.</span></div>
+    <div><b>Screen many candidates (optional)</b><span>Stepwise, backward or forward (<code>olsrr</code>), or best subsets (<code>regsubsets</code>). Run more than one and check they agree.</span></div>
     <div><b>Individual t-tests</b><span>Which predictors look weak, given the others?</span></div>
     <div><b>Drop one at a time</b><span>Largest p-value first. Refit after each drop and confirm with <code>anova(reduced, full)</code>. A category's dummies go together.</span></div>
     <div><b>Test interactions</b><span>Fit all two-way interactions, <code>(x1 + x2 + x3)^2</code>, from all predictors unless told otherwise. Drop the largest interaction p-value one at a time; keep main effects that are in kept interactions.</span></div>
@@ -1214,6 +1437,13 @@ lm(QUALITY ~ PRESSURE + I(PRESSURE^2) + I(PRESSURE^3) + I(PRESSURE^4), data = pr
     <tr><td>Category × number interaction</td><td><code>lm(y ~ x * factor(group))</code></td></tr>
     <tr><td>Squared / cubed terms</td><td><code>lm(y ~ x + I(x^2) + I(x^3))</code></td></tr>
     <tr><td>Scatterplot with a smooth curve</td><td><code>library(ggplot2)</code>; <code>ggplot(df, aes(x, y)) + geom_point() + geom_smooth()</code></td></tr>
+    <tr><td>Stepwise selection</td><td><code>olsrr::ols_step_both_p(full, p_enter = 0.1, p_remove = 0.3)</code></td></tr>
+    <tr><td>Forward / backward selection</td><td><code>ols_step_forward_p(full, p_val = 0.2)</code>, <code>ols_step_backward_p(full, p_val = 0.2)</code></td></tr>
+    <tr><td>The model a selection chose</td><td><code>summary(step_mod$model)</code></td></tr>
+    <tr><td>Best subsets (olsrr: adj R², Cₚ, AIC)</td><td><code>ols_step_best_subset(full)$metrics</code></td></tr>
+    <tr><td>Best subsets (leaps: adj R², Cₚ, BIC)</td><td><code>s = summary(leaps::regsubsets(y ~ ., data = df, nvmax = 10))</code>; <code>s$adjr2</code>, <code>s$cp</code>, <code>s$bic</code>, <code>s$which</code></td></tr>
+    <tr><td>Selection by AIC</td><td><code>MASS::stepAIC(full, direction = "both")</code></td></tr>
+    <tr><td>Scatterplot matrix</td><td><code>GGally::ggpairs(df)</code></td></tr>
   </table></div>
 </section>
 
@@ -1240,6 +1470,10 @@ lm(QUALITY ~ PRESSURE + I(PRESSURE^2) + I(PRESSURE^3) + I(PRESSURE^4), data = pr
     <tr><td>Group mean (one dummy)</td><td>Baseline: \(\beta_0\); group coded 1: \(\beta_0 + \beta_1\)</td><td></td></tr>
     <tr><td>Category × number, group coded 1</td><td>Intercept \(\beta_0 + \beta_2\); slope \(\beta_1 + \beta_3\)</td><td></td></tr>
     <tr><td>Quadratic model</td><td>\(Y = \beta_0 + \beta_1X + \beta_2X^2 + \epsilon\); sign of \(\beta_2\) = shape</td><td></td></tr>
+    <tr><td>Number of additive models</td><td>\(2^p\) for p candidate predictors</td><td></td></tr>
+    <tr><td>Mallows' Cₚ (lower; ≈ p + 1)</td><td>\(SSE_p / MSE_{full} + 2(p+1) - n\)</td><td></td></tr>
+    <tr><td>AIC (lower)</td><td>\(n\ln(SSE/n) + 2(p+1)\)</td><td></td></tr>
+    <tr><td>BIC (lower; heaviest penalty)</td><td>\(n\ln(SSE/n) + (p+1)\ln n\)</td><td></td></tr>
   </table></div>
 </section>
 
@@ -1283,6 +1517,15 @@ lm(QUALITY ~ PRESSURE + I(PRESSURE^2) + I(PRESSURE^3) + I(PRESSURE^4), data = pr
     <div><b>Mixing up the quadratic shapes</b><span>Positive β₂: U with a lowest point. Negative: ∩ with a highest point.</span></div>
     <div><b>Interpreting β₁ in a quadratic as a slope</b><span>With X² in the model, β₁ alone has no useful meaning.</span></div>
     <div><b>Adding powers until adjusted R² stops rising</b><span>Stop when the new top term isn't significant.</span></div>
+    <div><b>Counting models as pᵖ</b><span>Each predictor is in or out: 2ᵖ models.</span></div>
+    <div><b>Thinking stepwise starts with the full model</b><span>Stepwise and forward start empty; only backward starts full.</span></div>
+    <div><b>Getting the cutoff direction backwards</b><span>A higher p_val (0.2) is more lenient and keeps more predictors than 0.05.</span></div>
+    <div><b>Choosing a model size by R²</b><span>R² always favours the biggest model. Use adjusted R², Cₚ, AIC or BIC.</span></div>
+    <div><b>Treating the selected model as proof</b><span>Automatic methods run many tests; use them to screen, then check the result.</span></div>
+    <div><b>Accepting a split category or broken hierarchy</b><span>Check selected models keep all of a category's dummies and every interaction's main effects.</span></div>
+    <div><b>Picking the bigger model for a tiny gain</b><span>Parsimony: when fits are about equal, prefer the simpler model.</span></div>
+    <div><b>Forgetting <code>nvmax</code></b><span><code>regsubsets</code> stops at 8 predictors by default.</span></div>
+    <div><b>Thinking a negative t gives a different p-value</b><span>Only |t| matters: t = −2.02 and +2.02 give the same p-value.</span></div>
   </div>
 </section>
 
@@ -1326,6 +1569,19 @@ lm(QUALITY ~ PRESSURE + I(PRESSURE^2) + I(PRESSURE^3) + I(PRESSURE^4), data = pr
     <tr><td>IgG axis label "in millimetres"</td><td>IgG is in <strong>milligrams</strong></td></tr>
     <tr><td>Practice 4 mentions "varying temperature in F"</td><td>The predictor is <strong>pressure</strong> (psi)</td></tr>
   </table></div>
+  <h4>Lecture 4</h4>
+  <div class="tbl"><table>
+    <tr><th>In the notes</th><th>Should be</th></tr>
+    <tr><td>Profit and international-responsibility models print <code>summary(model_age)</code></td><td><code>summary(model_profit)</code> and <code>summary(model_resp)</code></td></tr>
+    <tr><td>Step 2 equation: "0.197135_bonus"</td><td>Missing the X: <strong>0.197X_bonus</strong></td></tr>
+    <tr><td>Stepwise comment: "remove for p-values less than 0.30"</td><td>Removed when p is <strong>more</strong> than p_remove</td></tr>
+    <tr><td>Backward section: "As was demonstrated with forward selection"</td><td>Forward selection comes <strong>later</strong>; it was shown with stepwise</td></tr>
+    <tr><td>\(R^2_{adj} = 1 - RSE/SST\)</td><td>\(1 - MSE / (SST/(n-1))\)</td></tr>
+    <tr><td>\(C_p = SSE_p/SSE_k + 2p - n\)</td><td>Divide by the full model's <strong>MSE</strong>: \(SSE_p/MSE_{full} + 2(p+1) - n\), with Cₚ ≈ p + 1 for an unbiased model</td></tr>
+    <tr><td><code>regsubsets(…,, data = …, nv = 10)</code></td><td>Remove the double comma; the argument is <code>nvmax</code>; load <code>library(leaps)</code></td></tr>
+    <tr><td>RSS plot labelled "RSE"</td><td>It plots <strong>RSS</strong> (SSE), not RSE</td></tr>
+    <tr><td>Bonus × Assets kept with p = 0.087</td><td>Not significant at 0.05; a judgement call, so justify it or drop it</td></tr>
+  </table></div>
 </section>
 
 <section class="step" id="templates">
@@ -1350,7 +1606,7 @@ lm(QUALITY ~ PRESSURE + I(PRESSURE^2) + I(PRESSURE^3) + I(PRESSURE^4), data = pr
 </section>
 
 <footer>
-  DATA 603 · University of Calgary · Personal revision notes covering Lecture 1 (Multiple Linear Regression), Lecture 2 (Interaction Models) and Lecture 3 (Dummy Variables and Polynomial Models). Written in my own words from the lecture notes by Danika Lipman (based on content by Thuntida Ngamkham, with additions by Jim Stallard) and <em>An Introduction to Statistical Learning</em>.<br>
+  DATA 603 · University of Calgary · Personal revision notes covering Lecture 1 (Multiple Linear Regression), Lecture 2 (Interaction Models), Lecture 3 (Dummy Variables and Polynomial Models) and Lecture 4 (Model Selection). Written in my own words from the lecture notes by Danika Lipman (based on content by Thuntida Ngamkham, with additions by Jim Stallard) and <em>An Introduction to Statistical Learning</em>.<br>
   <a class="totop" href="#start">Back to top</a>
 </footer>
 
