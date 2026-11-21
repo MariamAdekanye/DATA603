@@ -158,7 +158,7 @@ footer{margin-top:80px;color:var(--muted);font-size:14px;border-top:1px solid va
 
 <div class="shell">
 <nav class="rail" id="rail" aria-label="Contents">
-  <div class="brand">DATA 603 Revision Guide<small>Regression and interaction models in R, step by step</small></div>
+  <div class="brand">DATA 603 Revision Guide<small>Regression, interactions, dummy variables and curves in R</small></div>
   <label for="navFilter" style="position:absolute;left:-9999px">Filter topics</label>
   <input class="filter" id="navFilter" type="search" placeholder="Find a topic, e.g. RSE, partial F" autocomplete="off">
 
@@ -209,6 +209,18 @@ footer{margin-top:80px;color:var(--muted);font-size:14px;border-top:1px solid va
     </ol>
   </div>
   <div class="navgroup">
+    <h2>Lecture 3 · Categories &amp; curves</h2>
+    <ol>
+      <li><a href="#l3s1"><span class="n">3.1</span>Dummy variables</a></li>
+      <li><a href="#l3s2"><span class="n">3.2</span>More than two levels</a></li>
+      <li><a href="#l3s3"><span class="n">3.3</span>Several categories at once</a></li>
+      <li><a href="#l3s4"><span class="n">3.4</span>A category × a number</a></li>
+      <li><a href="#l3s5"><span class="n">3.5</span>Curved (polynomial) models</a></li>
+      <li><a href="#l3s6"><span class="n">3.6</span>Practice: best credit model</a></li>
+      <li><a href="#l3s7"><span class="n">3.7</span>Practice: product quality</a></li>
+    </ol>
+  </div>
+  <div class="navgroup">
     <h2>Quick reference</h2>
     <ol>
       <li><a href="#workflow"><span class="n">R1</span>The modelling workflow</a></li>
@@ -216,6 +228,7 @@ footer{margin-top:80px;color:var(--muted);font-size:14px;border-top:1px solid va
       <li><a href="#formulas"><span class="n">R3</span>Formula sheet</a></li>
       <li><a href="#mistakes"><span class="n">R4</span>Mistakes to avoid</a></li>
       <li><a href="#errata"><span class="n">R5</span>Corrections to the notes</a></li>
+      <li><a href="#templates"><span class="n">R6</span>How to phrase interpretations</a></li>
     </ol>
   </div>
   <p class="nomatch" id="noMatch" hidden>No topic matches that word. Try a shorter one.</p>
@@ -227,7 +240,7 @@ footer{margin-top:80px;color:var(--muted);font-size:14px;border-top:1px solid va
 <!-- ============ START ============ -->
 <section class="hero" id="start">
   <h1>Everything from DATA 603 so far, one step at a time</h1>
-  <p>Lecture 1 covers multiple linear regression: fitting a model, testing it, comparing models and predicting. Lecture 2 adds interaction terms, for when one predictor's effect depends on another. Each step explains the idea and the R code, then ends with a <em>Check yourself</em> box. Try the questions before you open the answers.</p>
+  <p>Lecture 1 covers multiple linear regression: fitting a model, testing it, comparing models and predicting. Lecture 2 adds interaction terms, for when one predictor's effect depends on another. Lecture 3 adds categorical predictors (dummy variables) and curved models. Each step explains the idea and the R code, then ends with a <em>Check yourself</em> box. Try the questions before you open the answers.</p>
   <div class="howto">
     <div><b>Jump around</b>Use the contents list, or type a word like <code>adjusted</code> into the search box to find it.</div>
     <div><b>Highlighted text</b><mark>Yellow</mark> marks the one idea to remember from each step.</div>
@@ -916,6 +929,243 @@ predict(sales_model_interaction, new_district, interval = "prediction", level = 
   </ol></div></details>
 </section>
 
+<!-- ============ LECTURE 3 ============ -->
+<div class="part" id="lecture3">
+  <div class="eyebrow">Lecture 3</div>
+  <h2>Categorical predictors and curved models</h2>
+  <p>Dummy variables (credit balance, professor salaries), a category interacting with a number, polynomial models, and four practice problems.</p>
+</div>
+
+<section class="step" id="l3s1">
+  <h3><span class="n">3.1</span>Dummy variables</h3>
+  <p>Some predictors are <strong>categories</strong>, not numbers: gender, student or not, department. To use one in a model, code it as 0s and 1s. That's a <strong>dummy variable</strong>. The numbers are labels only: 1 isn't "more" than 0.</p>
+  <h4>Credit balance by gender (n = 400)</h4>
+\[X_{Gender} = \begin{cases} 0 & \text{male} \\ 1 & \text{female} \end{cases} \qquad \widehat{Balance} = 509.80 + 19.73X_{Gender}\]
+  <div class="tbl"><table>
+    <tr><th>Group</th><th>Plug in</th><th class="num">Average balance</th></tr>
+    <tr><td>Male (baseline)</td><td>X = 0</td><td class="num">$509.80</td></tr>
+    <tr><td>Female</td><td>X = 1</td><td class="num">$529.53</td></tr>
+  </table></div>
+  <div class="lines">
+    <div><code>β̂₀ = 509.80</code><span>The average balance of the <strong>baseline</strong> group (coded 0): males.</span></div>
+    <div><code>β̂₁ = 19.73</code><span>The <strong>difference</strong> in average balance, females minus males. Not a slope.</span></div>
+    <div><code>β̂₀ + β̂₁</code><span>The average balance of the group coded 1: females.</span></div>
+  </div>
+  <p><strong>Is the difference real?</strong> t = 0.4285, p = 0.67 (the same test as F = 0.1836 on (1, 398)). Fail to reject H₀: balance doesn't depend on gender. Adjusted R² is −0.002, which is possible when a predictor explains essentially nothing.</p>
+<pre><code>library(dplyr)                          <span class="c"># needed for mutate() and %&gt;%</span>
+unique(credit.df$Gender)                <span class="c"># check the exact labels first: one is " Male", with a space</span>
+credit.df = credit.df %&gt;% mutate(gen_type = ifelse(Gender == " Male", 0, 1))
+lm(Balance ~ gen_type, data = credit.df)
+lm(Balance ~ Gender, data = credit.df)  <span class="c"># same model: text columns become dummies automatically</span></code></pre>
+  <h4>Practice 1: marital status</h4>
+  <p>0 = not married (baseline), 1 = married:</p>
+\[\widehat{Balance} = 523.29 - 5.347X_{Married}\]
+  <ul>
+    <li><strong>Not married:</strong> about $523.29 on average. <strong>Married:</strong> 523.29 − 5.35 = about $517.94.</li>
+    <li>Married people carry about <strong>$5.35 less</strong>, on average.</li>
+    <li><strong>Test:</strong> H₀: β₁ = 0 (average balance doesn't depend on marital status) vs Hₐ: β₁ ≠ 0. F = 0.0128 on (1, 398), t = −0.113, p = 0.91. Fail to reject: no evidence that balance depends on marital status.</li>
+  </ul>
+  <div class="key"><strong>Remember:</strong> <mark>a dummy's coefficient is a difference between groups, compared with the baseline.</mark> Say "higher/lower than", not "an increase of".</div>
+  <details class="check"><summary>Check yourself</summary><div class="body"><ol>
+    <li>If the coding were reversed (female = 0, male = 1), what would β̂₀ and β̂₁ be?<span class="a">β̂₀ = 529.53 (the female average, now the baseline) and β̂₁ = −19.73 (males minus females). Same model, different baseline.</span></li>
+    <li>Why does a two-level category need only one dummy?<span class="a">The baseline is the group with dummy = 0, so one dummy covers both groups.</span></li>
+  </ol></div></details>
+</section>
+
+<section class="step" id="l3s2">
+  <h3><span class="n">3.2</span>Categories with more than two levels</h3>
+  <p>A category with <strong>k levels needs k − 1 dummies</strong>. The level left out is the baseline, coded 0 on every dummy.</p>
+  <p><strong>Why not k dummies?</strong> The last one would be redundant: if someone isn't associate and isn't full, they must be assistant. The k dummies would also add up to the intercept's column of 1s, so R couldn't estimate the model.</p>
+  <h4>Professor salary by rank (30 professors, $1000s)</h4>
+<pre><code>salary.df = read.csv("https://raw.githubusercontent.com/Statman44/Data602/refs/heads/main/salary.csv")
+lm(salary ~ factor(rank), data = salary.df)</code></pre>
+  <p class="warn"><strong>Use <code>factor()</code>.</strong> Rank is stored as 1, 2, 3. Without <code>factor()</code>, R treats it as a number and fits one slope, as if going from assistant to associate were the same step as associate to full.</p>
+  <div class="tbl"><table>
+    <tr><th>Rank</th><th>Dummies (Assoc, Full)</th><th>Estimate</th><th class="num">Average salary</th></tr>
+    <tr><td>Assistant (baseline)</td><td>0, 0</td><td>β̂₀</td><td class="num">$42,000</td></tr>
+    <tr><td>Associate</td><td>1, 0</td><td>β̂₀ + β̂₁ = 42.0 + 10.571</td><td class="num">$52,571</td></tr>
+    <tr><td>Full</td><td>0, 1</td><td>β̂₀ + β̂₂ = 42.0 + 14.875</td><td class="num">$56,875</td></tr>
+  </table></div>
+  <p>Each coefficient is that rank's average salary <strong>minus the assistant average</strong>.</p>
+  <h4>Practice 2: salary by department</h4>
+  <p>Family Studies (1) is the baseline; Biology (2) and Business (3) get dummies.</p>
+\[\widehat{Salary} = 42.25 + 7.75X_{Biology} + 12.35X_{Business}\]
+  <div class="tbl"><table>
+    <tr><th>Comparison</th><th class="num">Difference</th><th>Where it comes from</th></tr>
+    <tr><td>Biology vs Family Studies</td><td class="num">+$7,750</td><td>β̂₁ (p = 0.090)</td></tr>
+    <tr><td>Business vs Family Studies</td><td class="num">+$12,350</td><td>β̂₂ (p = 0.006)</td></tr>
+    <tr><td>Business vs Biology</td><td class="num">+$4,600</td><td>β̂₂ − β̂₁ = 12.35 − 7.75 (not printed by R)</td></tr>
+  </table></div>
+  <p>Department averages: Family Studies $42,250, Biology $50,000, Business $54,600.</p>
+  <div class="tbl"><table>
+    <tr><th>Source</th><th class="num">SS</th><th class="num">df</th><th class="num">MS</th><th class="num">F</th></tr>
+    <tr><td>Regression (department)</td><td class="num">858.72</td><td class="num">2</td><td class="num">429.36</td><td class="num">4.603</td></tr>
+    <tr><td>Error</td><td class="num">2518.65</td><td class="num">27</td><td class="num">93.28</td><td></td></tr>
+    <tr><td>Total</td><td class="num">3377.37</td><td class="num">29</td><td></td><td></td></tr>
+  </table></div>
+  <p>H₀: β₁ = β₂ = 0 (salary can't be expressed as a linear function of department) vs Hₐ: at least one ≠ 0. F = 4.603 on (2, 27), p = 0.019 &lt; 0.05: reject H₀. <strong>Salary depends on department</strong>, mostly through Business, although department explains only about 20% of the variation (adjusted R² = 0.199).</p>
+  <div class="key"><strong>Remember:</strong> <mark>k levels → k − 1 dummies, each compared with the baseline.</mark> To compare two non-baseline groups, subtract their coefficients.</div>
+</section>
+
+<section class="step" id="l3s3">
+  <h3><span class="n">3.3</span>Several categories at once</h3>
+  <p>Start at the intercept (everyone in every baseline) and <strong>add whichever coefficients apply</strong>. Each coefficient is read "holding the other variables constant".</p>
+  <h4>Gender and marital status</h4>
+\[\widehat{Balance} = 513.20 + 19.80X_{Female} - 5.60X_{Married}\]
+  <div class="tbl"><table>
+    <tr><th></th><th class="num">Not married</th><th class="num">Married</th></tr>
+    <tr><td>Male</td><td class="num">513.20</td><td class="num">513.20 − 5.60 = 507.60</td></tr>
+    <tr><td>Female</td><td class="num">513.20 + 19.80 = 533.00</td><td class="num">513.20 + 19.80 − 5.60 = 527.40</td></tr>
+  </table></div>
+  <h4>Rank and department</h4>
+<pre><code>lm(salary ~ factor(rank) + factor(dept), data = salary.df)</code></pre>
+  <p>Baseline: an assistant professor in Family Studies.</p>
+  <div class="lines">
+    <div><code>β̂₀ = 34.05</code><span>Average salary of an assistant professor in Family Studies ($34,050).</span></div>
+    <div><code>Associate = 13.21</code><span>Associate vs assistant, in the same department.</span></div>
+    <div><code>Full = 15.19</code><span>Full vs <strong>assistant</strong>, in the same department.</span></div>
+    <div><code>Biology = 10.50</code><span>Biology vs Family Studies, at the same rank.</span></div>
+    <div><code>Business = 13.35</code><span>Business vs <strong>Family Studies</strong>, at the same rank.</span></div>
+  </div>
+  <p>Example: a full professor in Business = 34.05 + 15.19 + 13.35 = <strong>62.59</strong>, about $62,600.</p>
+  <p class="warn"><strong>Keep or drop a variable's dummies together.</strong> Each dummy's t-test only compares one level with the baseline. Dropping just one dummy would merge that level into the baseline. To test the whole variable, use a partial F-test: fit the model with and without it, then <code>anova(reduced, full)</code>.</p>
+  <details class="check"><summary>Check yourself</summary><div class="body"><ol>
+    <li>Predict the salary of an associate professor in Biology.<span class="a">34.05 + 13.21 + 10.50 = 57.76, about $57,760.</span></li>
+    <li>Ethnicity has three levels. The Asian dummy is significant but the Caucasian one isn't. Can you drop only the Caucasian dummy?<span class="a">No. Keep or drop both together. Dropping one would lump Caucasians in with the baseline (African American). Use a partial F-test on both dummies to decide about Ethnicity as a whole.</span></li>
+  </ol></div></details>
+</section>
+
+<section class="step" id="l3s4">
+  <h3><span class="n">3.4</span>A category × a number</h3>
+  <p>Credit balance from <strong>income</strong> ($1000s, a number) and <strong>student</strong> status (a category).</p>
+  <h4>Without an interaction: parallel lines</h4>
+\[\widehat{Balance} = 211.14 + 5.98X_{Income} + 382.67X_{Student}\]
+  <p>Non-students: 211.14 + 5.98 × Income. Students: 593.81 + 5.98 × Income. Same slope, different intercepts: students sit about $383 higher at every income.</p>
+  <h4>With an interaction: each group gets its own line</h4>
+<pre><code>lm(Balance ~ Income * factor(Student), data = credit.df)</code></pre>
+\[\widehat{Balance} = 200.62 + 6.22X_{Income} + 476.68X_{Student} - 2.00X_{Income}X_{Student}\]
+  <div class="tbl"><table>
+    <tr><th>Group</th><th>Intercept</th><th>Slope of income</th><th>Line</th></tr>
+    <tr><td>Non-student (0)</td><td>200.62</td><td>6.22</td><td>200.62 + 6.22 × Income</td></tr>
+    <tr><td>Student (1)</td><td>200.62 + 476.68 = 677.30</td><td>6.22 + (−2.00) = 4.22</td><td>677.30 + 4.22 × Income</td></tr>
+  </table></div>
+  <p>Students start higher but rise more slowly: each extra $1,000 of income adds about $6.22 to a non-student's balance but only about $4.22 to a student's.</p>
+  <div class="key"><strong>Remember:</strong> <mark>for the group coded 1, add the dummy's coefficient to the intercept and the interaction's coefficient to the slope.</mark> Add; don't replace.</div>
+</section>
+
+<section class="step" id="l3s5">
+  <h3><span class="n">3.5</span>Curved (polynomial) models</h3>
+  <p>When the data bends, add powers of X. A <strong>second-order (quadratic)</strong> model:</p>
+\[Y = \beta_0 + \beta_1X + \beta_2X^2 + \epsilon\]
+  <div class="tbl"><table>
+    <tr><th>Sign of β̂₂</th><th>Shape</th><th>What Y does as X increases</th></tr>
+    <tr><td>Positive</td><td>U (opens upward)</td><td>Falls, reaches a <strong>lowest point</strong>, then rises</td></tr>
+    <tr><td>Negative</td><td>∩ (opens downward)</td><td>Rises, reaches a <strong>highest point</strong>, then falls</td></tr>
+  </table></div>
+  <ul>
+    <li><strong>β̂₁ is no longer a slope.</strong> With X² in the model, the slope changes along the curve, so β̂₁ alone has no useful meaning.</li>
+    <li><strong>β̂₀</strong> means something only if X = 0 is inside the data.</li>
+    <li><strong>Hierarchy applies:</strong> keep X when X² is in the model; keep X² and X when X³ is.</li>
+    <li><strong>Don't predict outside the data.</strong> Curves can shoot up or down past the edges.</li>
+  </ul>
+<pre><code>lm(IGG ~ MAXOXY + I(MAXOXY^2), data = aero.df)   <span class="c"># I() is needed: ^ has another meaning in formulas</span></code></pre>
+  <h4>Aerobic fitness and immunity (IgG, mg)</h4>
+  <div class="tbl"><table>
+    <tr><th>Model</th><th class="num">SSE</th></tr>
+    <tr><td>Linear</td><td class="num">3,528,599</td></tr>
+    <tr><td>Quadratic</td><td class="num">2,743,611</td></tr>
+    <tr><td><strong>Cubic</strong></td><td class="num">2,174,373</td></tr>
+    <tr><td>Quartic</td><td class="num">2,149,649</td></tr>
+  </table></div>
+  <p>The notes choose the <strong>cubic</strong> (adjusted R² ≈ 0.84, Sₑ ≈ 159.9). SSE always falls as powers are added, so it can't choose the model on its own.</p>
+  <div class="key"><strong>Remember:</strong> <mark>positive squared term smiles (U, lowest point); negative frowns (∩, highest point).</mark> Add higher powers only while the new top term is significant.</div>
+  <details class="check"><summary>Check yourself</summary><div class="body"><ol>
+    <li>A fitted quadratic has β̂₂ = −0.5. What shape is it, and what happens to Y as X keeps increasing?<span class="a">An upside-down U: Y rises, levels off at a highest point, then falls.</span></li>
+    <li>And with β̂₂ = +0.5?<span class="a">A U: Y is high and falling at low X, reaches a lowest point, then rises at high X.</span></li>
+  </ol></div></details>
+</section>
+
+<section class="step" id="l3s6">
+  <h3><span class="n">3.6</span>Practice: the best credit model</h3>
+  <p>Balance from six numbers (income, limit, rating, cards, age, education) and four categories (gender, student, married, ethnicity). Ethnicity has three levels, so two dummies.</p>
+  <h4>Full additive model</h4>
+  <p>F = 750.3 on (11, 388), p ≈ 0, so the model is useful.</p>
+  <div class="tbl"><table>
+    <tr><th>Term</th><th class="num">Estimate</th><th class="num">p</th></tr>
+    <tr><td>Income</td><td class="num">−7.803</td><td class="num">&lt; 2 × 10⁻¹⁶</td></tr>
+    <tr><td>Limit</td><td class="num">0.191</td><td class="num">1.2 × 10⁻⁸</td></tr>
+    <tr><td>Rating</td><td class="num">1.137</td><td class="num">0.021</td></tr>
+    <tr><td>Cards</td><td class="num">17.724</td><td class="num">5.4 × 10⁻⁵</td></tr>
+    <tr><td>Age</td><td class="num">−0.614</td><td class="num">0.037</td></tr>
+    <tr><td>Education</td><td class="num">−1.099</td><td class="num">0.492</td></tr>
+    <tr><td>Gender: Female</td><td class="num">−10.653</td><td class="num">0.283</td></tr>
+    <tr><td>Student: Yes</td><td class="num">425.747</td><td class="num">&lt; 2 × 10⁻¹⁶</td></tr>
+    <tr><td>Married: Yes</td><td class="num">−8.534</td><td class="num">0.411</td></tr>
+    <tr><td>Ethnicity: Asian / Caucasian</td><td class="num">16.80 / 10.11</td><td class="num">0.235 / 0.408</td></tr>
+  </table></div>
+  <p>Education, gender, married and ethnicity look unnecessary. Drop them one at a time (largest p first), or all together backed by a partial F-test on their <strong>five</strong> coefficients:</p>
+<pre><code>credit_reduced = lm(Balance ~ Income + Limit + Rating + Cards + Age + Student, data = credit.df)
+anova(credit_reduced, credit_full)</code></pre>
+  <p>From the rounded Sₑ values, F ≈ 0.71 on (5, 388), p ≈ 0.6, so dropping all five is justified. Report the exact figures from <code>anova()</code>.</p>
+  <h4>Reduced additive model</h4>
+\[\widehat{Balance} = -493.73 - 7.795\,Income + 0.194\,Limit + 1.091\,Rating + 18.21\,Cards - 0.624\,Age + 425.61\,Student\]
+  <p>All six are significant; adjusted R² = 0.954, Sₑ = 98.6.</p>
+  <div class="lines">
+    <div><code>Student 425.61</code><span>Holding the others constant, students carry an average balance about <strong>$425.61 higher</strong> than non-students.</span></div>
+    <div><code>Income −7.795</code><span>Each extra <strong>$1,000</strong> of income is associated with about <strong>$7.80 less</strong> balance. Among people with the same limit and rating, higher earners carry less debt.</span></div>
+    <div><code>Cards 18.21</code><span>Each additional <strong>credit card</strong> is associated with about <strong>$18.21 more</strong>.</span></div>
+    <div><code>Age −0.624</code><span>Each additional <strong>year</strong> of age is associated with about <strong>$0.62 less</strong>.</span></div>
+    <div><code>Limit 0.194</code><span>Each extra $1 of limit: about $0.19 more. More usefully, each extra <strong>$1,000</strong> of limit: about <strong>$194 more</strong>.</span></div>
+    <div><code>Intercept −493.73</code><span>A non-student with every number at 0, including age 0. A negative balance is impossible, so it has <strong>no practical meaning</strong>.</span></div>
+  </div>
+  <h4>Quick-fire: multiply, then add</h4>
+  <div class="tbl"><table>
+    <tr><th>Two otherwise identical people, one…</th><th>Working</th><th class="num">Difference</th></tr>
+    <tr><td>…is a student</td><td>425.61</td><td class="num">$425.61 higher</td></tr>
+    <tr><td>…earns $10,000 more</td><td>10 × −7.80</td><td class="num">$78 lower</td></tr>
+    <tr><td>…has 3 more cards</td><td>3 × 18.21</td><td class="num">$54.64 higher</td></tr>
+    <tr><td>…is 10 years older</td><td>10 × −0.624</td><td class="num">$6.24 lower</td></tr>
+    <tr><td>…is a student with 2 more cards</td><td>425.61 + 2 × 18.21</td><td class="num">$462.03 higher</td></tr>
+  </table></div>
+  <h4>Interaction model</h4>
+<pre><code>lm(Balance ~ (Income + Limit + Rating + Cards + Age + Student)^2, data = credit.df)</code></pre>
+  <p>Of the 15 interactions, five were significant at 0.05: Income × Rating, Income × Age, Income × Student, Limit × Rating and Limit × Student (Rating × Student was just above, at 0.054). After refitting, Income × Age dropped out, leaving four:</p>
+  <div class="tbl"><table>
+    <tr><th>Interaction</th><th class="num">Estimate</th><th class="num">p</th></tr>
+    <tr><td>Income × Rating</td><td class="num">−0.01694</td><td class="num">&lt; 2 × 10⁻¹⁶</td></tr>
+    <tr><td>Income × Student</td><td class="num">−1.784</td><td class="num">7.5 × 10⁻⁵</td></tr>
+    <tr><td>Limit × Rating</td><td class="num">0.000337</td><td class="num">&lt; 2 × 10⁻¹⁶</td></tr>
+    <tr><td>Limit × Student</td><td class="num">0.0787</td><td class="num">&lt; 2 × 10⁻¹⁶</td></tr>
+  </table></div>
+  <p>Rating (p = 0.33 alone) stays by the hierarchy principle. Income × Age went from significant to not after the refit because p-values are conditional on everything else in the model; that's why dropping one term at a time is safer than dropping nine at once.</p>
+  <p><strong>Slope of income:</strong> −1.84 − 0.0169 × Rating − 1.78 × Student. At the same rating, extra income reduces balance <strong>more for students</strong>, by about $1.78 more per $1,000.</p>
+  <div class="tbl"><table>
+    <tr><th>Model</th><th class="num">Adjusted R²</th><th class="num">Sₑ</th></tr>
+    <tr><td>Additive</td><td class="num">0.954</td><td class="num">98.6</td></tr>
+    <tr><td><strong>Interaction</strong></td><td class="num"><strong>0.981</strong></td><td class="num"><strong>63.6</strong></td></tr>
+  </table></div>
+  <p>Recommend the interaction model: typical prediction errors fall from about $99 to about $64, roughly a third smaller.</p>
+</section>
+
+<section class="step" id="l3s7">
+  <h3><span class="n">3.7</span>Practice: product quality vs pressure</h3>
+<pre><code>prod_qual.df = read.csv("https://raw.githubusercontent.com/Statman44/Data602/refs/heads/main/PRODQUAL.csv")
+library(ggplot2)   <span class="c"># load before calling ggplot()</span>
+ggplot(prod_qual.df, aes(x = PRESSURE, y = QUALITY)) + geom_point() + geom_smooth()
+lm(QUALITY ~ PRESSURE + I(PRESSURE^2) + I(PRESSURE^3) + I(PRESSURE^4), data = prod_qual.df)</code></pre>
+  <div class="tbl"><table>
+    <tr><th>Model</th><th class="num">Top term's p</th><th class="num">Adjusted R²</th><th class="num">Sₑ</th></tr>
+    <tr><td>Quadratic</td><td class="num">&lt; 2 × 10⁻¹⁶</td><td class="num">0.756</td><td class="num">7.96</td></tr>
+    <tr><td>Cubic</td><td class="num">0.00003</td><td class="num">0.806</td><td class="num">7.10</td></tr>
+    <tr><td><strong>Quartic</strong></td><td class="num">0.00004</td><td class="num">0.845</td><td class="num">6.35</td></tr>
+    <tr><td>Quintic</td><td class="num">0.174</td><td class="num">0.847</td><td class="num">6.31</td></tr>
+  </table></div>
+  <p><strong>Choose the quartic:</strong> its fourth-power term is significant; the fifth-power term isn't (p = 0.174). The quintic's tiny gain in adjusted R² happens only because that term's |t| (1.37) is just over 1, and <strong>none</strong> of its terms is significant, a sign of overfitting.</p>
+\[\widehat{QUALITY} = 495808.56 - 36686.01P + 1015.21P^2 - 12.451P^3 + 0.0571P^4\]
+  <p>Use it only inside the pressure range of the data: a fourth-power curve can swing wildly past the edges.</p>
+  <div class="key"><strong>Remember:</strong> <mark>keep adding a power only while the new top term is significant.</mark></div>
+</section>
+
 <!-- ============ REFERENCE ============ -->
 <div class="part" id="reference">
   <div class="eyebrow">Quick reference</div>
@@ -925,10 +1175,10 @@ predict(sales_model_interaction, new_district, interval = "prediction", level = 
 <section class="step" id="workflow">
   <h3><span class="n">R1</span>The modelling workflow</h3>
   <div class="flow">
-    <div><b>Fit the full model</b><span>All candidate predictors: <code>lm(y ~ x1 + x2 + ...)</code></span></div>
+    <div><b>Fit the full model</b><span>All candidate predictors: <code>lm(y ~ x1 + x2 + ...)</code>. Wrap categories stored as numbers in <code>factor()</code>; look at a scatterplot for curvature.</span></div>
     <div><b>Global F-test</b><span>Fail to reject → stop. No t-test hunting.</span></div>
     <div><b>Individual t-tests</b><span>Which predictors look weak, given the others?</span></div>
-    <div><b>Drop one at a time</b><span>Largest p-value first. Refit after each drop and confirm with <code>anova(reduced, full)</code>.</span></div>
+    <div><b>Drop one at a time</b><span>Largest p-value first. Refit after each drop and confirm with <code>anova(reduced, full)</code>. A category's dummies go together.</span></div>
     <div><b>Test interactions</b><span>Fit all two-way interactions, <code>(x1 + x2 + x3)^2</code>, from all predictors unless told otherwise. Drop the largest interaction p-value one at a time; keep main effects that are in kept interactions.</span></div>
     <div><b>Compare models</b><span>Additive vs interaction: adjusted R² (higher is better) and RSE (lower is better). Never plain R².</span></div>
     <div><b>Predict</b><span>Prediction interval for one new case, inside the data range.</span></div>
@@ -957,6 +1207,13 @@ predict(sales_model_interaction, new_district, interval = "prediction", level = 
     <tr><td>Drop one term and refit</td><td><code>update(model, . ~ . - x1:x2)</code></td></tr>
     <tr><td>One-sided p-value (Hₐ: β &gt; 0)</td><td><code>pt(t, df, lower.tail = FALSE)</code></td></tr>
     <tr><td>Automated backward elimination</td><td><code>olsrr::ols_step_backward_p(model, p_val = 0.06)</code></td></tr>
+    <tr><td>Category stored as numbers</td><td><code>lm(y ~ factor(rank))</code></td></tr>
+    <tr><td>Check a category's exact labels</td><td><code>unique(df$Gender)</code></td></tr>
+    <tr><td>Build a dummy by hand</td><td><code>library(dplyr)</code>; <code>df %&gt;% mutate(d = ifelse(x == "Yes", 1, 0))</code></td></tr>
+    <tr><td>Change the baseline level</td><td><code>relevel(factor(x), ref = "Female")</code></td></tr>
+    <tr><td>Category × number interaction</td><td><code>lm(y ~ x * factor(group))</code></td></tr>
+    <tr><td>Squared / cubed terms</td><td><code>lm(y ~ x + I(x^2) + I(x^3))</code></td></tr>
+    <tr><td>Scatterplot with a smooth curve</td><td><code>library(ggplot2)</code>; <code>ggplot(df, aes(x, y)) + geom_point() + geom_smooth()</code></td></tr>
   </table></div>
 </section>
 
@@ -979,6 +1236,10 @@ predict(sales_model_interaction, new_district, interval = "prediction", level = 
     <tr><td>Interaction model</td><td>\(Y = \beta_0 + \beta_1X_1 + \beta_2X_2 + \beta_3X_1X_2 + \epsilon\)</td><td></td></tr>
     <tr><td>Slope of \(X_1\) with interaction</td><td>\(\beta_1 + \beta_3X_2\)</td><td></td></tr>
     <tr><td>One predictor: t vs F</td><td>\(F = t^2\), same two-sided p-value</td><td>\((1,\; n-p-1)\)</td></tr>
+    <tr><td>Category with k levels</td><td>\(k - 1\) dummies; baseline = all zeros</td><td>\(k-1\) model df</td></tr>
+    <tr><td>Group mean (one dummy)</td><td>Baseline: \(\beta_0\); group coded 1: \(\beta_0 + \beta_1\)</td><td></td></tr>
+    <tr><td>Category × number, group coded 1</td><td>Intercept \(\beta_0 + \beta_2\); slope \(\beta_1 + \beta_3\)</td><td></td></tr>
+    <tr><td>Quadratic model</td><td>\(Y = \beta_0 + \beta_1X + \beta_2X^2 + \epsilon\); sign of \(\beta_2\) = shape</td><td></td></tr>
   </table></div>
 </section>
 
@@ -1010,6 +1271,18 @@ predict(sales_model_interaction, new_district, interval = "prediction", level = 
     <div><b>Trusting adjusted R² over the t-test</b><span>Adjusted R² rises whenever |t| &gt; 1, which is a lower bar than significance.</span></div>
     <div><b>Using ≠ for a "does it increase?" question</b><span>That's one-sided: Hₐ: β &gt; 0, with a one-tailed p-value.</span></div>
     <div><b>Reusing a template without changing every number</b><span>Read the decision back against your own p-value.</span></div>
+    <div><b>Forgetting <code>factor()</code> on a coded category</b><span>Rank 1/2/3 would get one slope, as if it were a measurement.</span></div>
+    <div><b>Calling a dummy coefficient "an increase"</b><span>It's a difference between a group and the baseline.</span></div>
+    <div><b>Dropping one dummy of a category</b><span>Keep or drop all of a category's dummies together; test them with a partial F-test.</span></div>
+    <div><b>Comparing two non-baseline groups from the output</b><span>R only prints comparisons with the baseline. Subtract the two coefficients.</span></div>
+    <div><b>Mismatched labels in <code>ifelse()</code></b><span>Check with <code>unique()</code> first: the credit data has " Male" with a leading space.</span></div>
+    <div><b>Getting the units of a predictor wrong</b><span>Cards is one card, income is $1,000, age is one year. Ask what one unit is.</span></div>
+    <div><b>Forgetting to scale the change</b><span>The coefficient is for one unit. For 10 units or 3 cards, multiply.</span></div>
+    <div><b>"A balance of −7.80"</b><span>A negative coefficient is a decrease: "about $7.80 less".</span></div>
+    <div><b>Replacing instead of adding in an interaction</b><span>The group's slope is the main effect <em>plus</em> the interaction.</span></div>
+    <div><b>Mixing up the quadratic shapes</b><span>Positive β₂: U with a lowest point. Negative: ∩ with a highest point.</span></div>
+    <div><b>Interpreting β₁ in a quadratic as a slope</b><span>With X² in the model, β₁ alone has no useful meaning.</span></div>
+    <div><b>Adding powers until adjusted R² stops rising</b><span>Stop when the new top term isn't significant.</span></div>
   </div>
 </section>
 
@@ -1037,10 +1310,47 @@ predict(sales_model_interaction, new_district, interval = "prediction", level = 
     <tr><td>Arsenic (f): "confidence interval" for one well</td><td>A single well needs a <strong>prediction interval</strong></td></tr>
     <tr><td>Sales (e): "confidence interval of your predicted value"</td><td>For one district's sales, use a <strong>prediction interval</strong></td></tr>
   </table></div>
+  <h4>Lecture 3</h4>
+  <div class="tbl"><table>
+    <tr><th>In the notes</th><th>Should be</th></tr>
+    <tr><td>Gender test: Hₐ says "can not be expressed"</td><td>Hₐ: balance <strong>can</strong> be expressed as a linear function of gender</td></tr>
+    <tr><td><code>lm(Balance~Gender, data = Credit</code></td><td>Missing bracket, and the data is <code>credit.df</code></td></tr>
+    <tr><td>Heading "Dummy Coding with 3 Levels" over the gender + married example</td><td>That example has two two-level categories; three levels appear with rank and department</td></tr>
+    <tr><td>Gender + married: "from female to male … decreases to 507.60"</td><td>507.60 is the <strong>married male</strong> average (513.20 − 5.60)</td></tr>
+    <tr><td>Rank + dept: β̂₂ = "Full vs Associate"</td><td>Full vs <strong>Assistant</strong> (the baseline)</td></tr>
+    <tr><td>Rank + dept: β̂₄ = "Business vs Biology"</td><td>Business vs <strong>Family Studies</strong> (the baseline)</td></tr>
+    <tr><td>Stray "+" in the Business assistant case</td><td>34.04904 + 13.35131</td></tr>
+    <tr><td>Student intercept "667.29 versus β̂₁ = 200.6232"</td><td><strong>677.30</strong> versus <strong>β̂₀</strong> = 200.62</td></tr>
+    <tr><td><code>ggplot(Credit, …)</code></td><td><code>ggplot(credit.df, …)</code></td></tr>
+    <tr><td>Quadratic "curvature … relating Y to 1"</td><td>Relating Y to <strong>X</strong></td></tr>
+    <tr><td>IgG axis label "in millimetres"</td><td>IgG is in <strong>milligrams</strong></td></tr>
+    <tr><td>Practice 4 mentions "varying temperature in F"</td><td>The predictor is <strong>pressure</strong> (psi)</td></tr>
+  </table></div>
+</section>
+
+<section class="step" id="templates">
+  <h3><span class="n">R6</span>How to phrase interpretations</h3>
+  <div class="mistakes">
+    <div><b>A number predictor</b><span>"Holding [the others] constant, each additional [one unit, with its real unit] of X is associated with an [increase/decrease] of about [coefficient, with units] in average Y."</span><br><span><em>Example:</em> "…each additional credit card is associated with an increase of about $18.21 in average balance."</span></div>
+    <div><b>A dummy</b><span>"Holding [the others] constant, [group coded 1] have an average Y about [coefficient] [higher/lower] than [baseline]."</span><br><span><em>Example:</em> "Students carry an average balance about $425.61 higher than non-students."</span></div>
+    <div><b>An interaction</b><span>"The effect of X depends on Z: each extra unit of X is associated with a change in Y of about [β_X + β_XZ × Z]." Then plug in a real Z.</span><br><span><em>Example:</em> "Each extra $1,000 on TV adds about 19.1 + 1.1 × radio units; at $30k radio, about 52."</span></div>
+    <div><b>The intercept</b><span>"The predicted Y when all predictors are 0 [and every category is at its baseline]. It [has / has no] practical meaning because…"</span><br><span><em>Example:</em> "−493.73 has no practical meaning: nobody in the data has age 0, and a negative balance is impossible."</span></div>
+    <div><b>A squared term</b><span>"The positive/negative X² term means the curve opens upward/downward, with a lowest/highest point."</span><br><span><em>Example:</em> "β̂₂ &lt; 0: quality rises, peaks, then falls as pressure increases."</span></div>
+  </div>
+  <h4>Check every time</h4>
+  <ol>
+    <li><strong>Units:</strong> what is one unit? One card, $1,000 of income, one year of age.</li>
+    <li><strong>Size of the change:</strong> the coefficient is per one unit. For any other change, multiply.</li>
+    <li><strong>Direction:</strong> a minus sign is a decrease. Say "about $7.80 less", not "a balance of −7.80".</li>
+    <li><strong>Dummies are differences</strong> from the baseline, not increases.</li>
+    <li><strong>Say what's held constant</strong>, and use "associated with", not "causes".</li>
+    <li><strong>Interactions: add, don't replace.</strong> The slope is the main effect plus the interaction term.</li>
+    <li><strong>Several changes at once</strong> (additive model): work out each piece, then add them.</li>
+  </ol>
 </section>
 
 <footer>
-  DATA 603 · University of Calgary · Personal revision notes covering Lecture 1 (Multiple Linear Regression) and Lecture 2 (Interaction Models). Written in my own words from the lecture notes by Danika Lipman (based on content by Thuntida Ngamkham, with additions by Jim Stallard) and <em>An Introduction to Statistical Learning</em>.<br>
+  DATA 603 · University of Calgary · Personal revision notes covering Lecture 1 (Multiple Linear Regression), Lecture 2 (Interaction Models) and Lecture 3 (Dummy Variables and Polynomial Models). Written in my own words from the lecture notes by Danika Lipman (based on content by Thuntida Ngamkham, with additions by Jim Stallard) and <em>An Introduction to Statistical Learning</em>.<br>
   <a class="totop" href="#start">Back to top</a>
 </footer>
 
