@@ -158,7 +158,7 @@ footer{margin-top:80px;color:var(--muted);font-size:14px;border-top:1px solid va
 
 <div class="shell">
 <nav class="rail" id="rail" aria-label="Contents">
-  <div class="brand">DATA 603 Revision Guide<small>Regression, interactions, dummies, curves and model selection in R</small></div>
+  <div class="brand">DATA 603 Revision Guide<small>Regression, interactions, dummies, curves, model selection and diagnostics in R</small></div>
   <label for="navFilter" style="position:absolute;left:-9999px">Filter topics</label>
   <input class="filter" id="navFilter" type="search" placeholder="Find a topic, e.g. RSE, partial F" autocomplete="off">
 
@@ -235,6 +235,20 @@ footer{margin-top:80px;color:var(--muted);font-size:14px;border-top:1px solid va
     </ol>
   </div>
   <div class="navgroup">
+    <h2>Lecture 5 · Diagnostics</h2>
+    <ol>
+      <li><a href="#l5s1"><span class="n">5.1</span>Residuals &amp; the six checks</a></li>
+      <li><a href="#l5s2"><span class="n">5.2</span>Linearity</a></li>
+      <li><a href="#l5s3"><span class="n">5.3</span>Independence</a></li>
+      <li><a href="#l5s4"><span class="n">5.4</span>Equal variance &amp; Breusch-Pagan</a></li>
+      <li><a href="#l5s5"><span class="n">5.5</span>Normality &amp; Shapiro-Wilk</a></li>
+      <li><a href="#l5s6"><span class="n">5.6</span>Multicollinearity &amp; VIF</a></li>
+      <li><a href="#l5s7"><span class="n">5.7</span>Outliers, leverage, Cook's</a></li>
+      <li><a href="#l5s8"><span class="n">5.8</span>The order of fixes</a></li>
+      <li><a href="#l5s9"><span class="n">5.9</span>Practice: executive salary</a></li>
+    </ol>
+  </div>
+  <div class="navgroup">
     <h2>Quick reference</h2>
     <ol>
       <li><a href="#workflow"><span class="n">R1</span>The modelling workflow</a></li>
@@ -254,7 +268,7 @@ footer{margin-top:80px;color:var(--muted);font-size:14px;border-top:1px solid va
 <!-- ============ START ============ -->
 <section class="hero" id="start">
   <h1>Everything from DATA 603 so far, one step at a time</h1>
-  <p>Lecture 1 covers multiple linear regression: fitting a model, testing it, comparing models and predicting. Lecture 2 adds interaction terms, for when one predictor's effect depends on another. Lecture 3 adds categorical predictors (dummy variables) and curved models. Lecture 4 covers choosing predictors when there are many candidates. Each step explains the idea and the R code, then ends with a <em>Check yourself</em> box. Try the questions before you open the answers.</p>
+  <p>Lecture 1 covers multiple linear regression: fitting a model, testing it, comparing models and predicting. Lecture 2 adds interaction terms, for when one predictor's effect depends on another. Lecture 3 adds categorical predictors (dummy variables) and curved models. Lecture 4 covers choosing predictors when there are many candidates. Lecture 5 checks whether a model's assumptions hold. Each step explains the idea and the R code, then ends with a <em>Check yourself</em> box. Try the questions before you open the answers.</p>
   <div class="howto">
     <div><b>Jump around</b>Use the contents list, or type a word like <code>adjusted</code> into the search box to find it.</div>
     <div><b>Highlighted text</b><mark>Yellow</mark> marks the one idea to remember from each step.</div>
@@ -1388,6 +1402,201 @@ ols_step_both_p(clerical_full, p_enter = 0.05, p_remove = 0.05)</code></pre>
   <div class="key"><strong>Remember:</strong> <mark>when the criteria disagree, fit the candidates and look at their t-tests.</mark> Name the trade-off in your answer.</div>
 </section>
 
+<!-- ============ LECTURE 5 ============ -->
+<div class="part" id="lecture5">
+  <div class="eyebrow">Lecture 5</div>
+  <h2>Regression diagnostics</h2>
+  <p>Checking the model's assumptions so you know whether to trust its results: linearity, independence, equal variance, normality, multicollinearity and outliers. Advertising, clerical hours, credit balance and executive salary.</p>
+</div>
+
+<section class="step" id="l5s1">
+  <h3><span class="n">5.1</span>Residuals and the six checks</h3>
+  <p>A <strong>residual</strong> is what the model failed to explain: observed minus predicted, \(e_i = y_i - \hat y_i\). If a store sold 20 units and the model predicted 18, the residual is 2. SSE is just all the residuals squared and added up; diagnostics look at them one by one, on plots.</p>
+  <p>If the model is good, the residuals should look like <strong>random noise</strong>. A pattern means the model has missed something real, and the tests and intervals from earlier lectures can't be fully trusted.</p>
+  <div class="tbl"><table>
+    <tr><th>Assumption</th><th>What it means</th><th>Check</th><th>Usual fix</th></tr>
+    <tr><td>1. Linearity</td><td>The relationship is a straight line (in the terms used)</td><td>Residuals vs fitted: flat band around 0</td><td>Add X², X³ for the curved predictor</td></tr>
+    <tr><td>2. Independence</td><td>One error tells you nothing about the next</td><td>Residuals in time/collection order</td><td>Time-series methods (beyond this course)</td></tr>
+    <tr><td>3. Equal variance</td><td>Same spread everywhere (homoscedasticity)</td><td>Scale-location plot; <strong>Breusch-Pagan</strong></td><td>Transform Y: log(Y), √Y, Box-Cox</td></tr>
+    <tr><td>4. Normality</td><td>Residuals follow a bell curve</td><td>Q-Q plot, histogram; <strong>Shapiro-Wilk</strong></td><td>Transform Y; investigate outliers</td></tr>
+    <tr><td>5. Multicollinearity</td><td>Predictors don't overlap heavily</td><td><strong>VIF</strong> (main effects only)</td><td>Drop or combine one of the pair</td></tr>
+    <tr><td>6. Outliers</td><td>No single point drags the line</td><td><strong>Cook's distance</strong>, leverage</td><td>Check for errors; refit without it</td></tr>
+  </table></div>
+  <div class="key"><strong>Remember:</strong> <mark>random scatter = the model caught the pattern; a pattern = something is missing.</mark></div>
+</section>
+
+<section class="step" id="l5s2">
+  <h3><span class="n">5.2</span>Linearity</h3>
+  <p>With several predictors, plot residuals against the <strong>fitted values</strong> (not against each X). You want a flat, rectangular band around 0. A <strong>curve</strong> means the true relationship bends but the model drew a straight line.</p>
+<pre><code>ggplot(model, aes(x = .fitted, y = .resid)) + geom_point() + geom_smooth() +
+  geom_hline(yintercept = 0, linetype = "dashed")
+plot(model, which = 1)     <span class="c"># base-R version</span></code></pre>
+  <h4>Which predictor to square?</h4>
+  <p>The residuals-vs-fitted plot only says <em>something</em> is curved. To find which predictor, look at Y (or the residuals) against each X, e.g. with <code>GGally::ggpairs(df)</code>. The predictor that bends is the one to square.</p>
+  <h4>Advertising</h4>
+  <p>The TV × radio model's residuals were concave, and ggpairs showed sales vs TV curving. Adding TV² left some curve; adding TV³ flattened it (adjusted R² = 0.9907, Sₑ = 0.503):</p>
+\[\hat Y = 4.061 + 0.09X_{tv} - 0.0004X_{tv}^2 + 0.0000007X_{tv}^3 + 0.04206X_{radio} + 0.001044X_{tv}X_{radio}\]
+  <h4>Clerical hours (Practice 1)</h4>
+  <p>For Y ~ X2 + X4 + X5, the smooth line waved up to about +6 in the middle. In ggpairs, <strong>X2 vs Y</strong> rose and fell like a hill; X4 was flat and X5 roughly linear. Adding X2² (<code>Y ~ X2 + I(X2^2) + X4 + X5</code>) kept the residual line within about ±3 of zero, so linearity is reasonable.</p>
+  <p><strong>When to stop adding powers:</strong> when the residual plot is roughly flat, or the new top term isn't significant. Going past a cubic usually means overfitting.</p>
+  <div class="key"><strong>Remember:</strong> <mark>curve → add a power of the curved predictor; flat band → linearity holds.</mark></div>
+  <details class="check"><summary>Check yourself</summary><div class="body"><ol>
+    <li>The residuals-vs-fitted plot curves. How do you decide which predictor to square?<span class="a">Plot Y (or the residuals) against each predictor, e.g. with ggpairs. Square the one that bends.</span></li>
+    <li>Why do we want the smooth line to be flat?<span class="a">A flat line around 0 means no pattern is left: whatever the model hasn't explained is random noise.</span></li>
+  </ol></div></details>
+</section>
+
+<section class="step" id="l5s3">
+  <h3><span class="n">5.3</span>Independence</h3>
+  <p>Each error should stand on its own. Example: a model predicts daily electricity use, and a cold snap it doesn't know about makes it under-predict on Monday, Tuesday and Wednesday. Knowing Monday's error tells you about Tuesday's, so the errors aren't independent.</p>
+  <p><strong>Why it matters:</strong> R treats every row as fresh information. With linked errors there's less real information than it looks, so standard errors are too small and p-values look more significant than they are.</p>
+  <ul>
+    <li><strong>Causes:</strong> serial correlation (time series), spatial association, clusters.</li>
+    <li><strong>Check:</strong> plot residuals against time/observation order, location or group. Runs of positives then negatives signal a problem; a random zig-zag is fine.</li>
+    <li>For data not collected over time, space or groups (like Advertising), independence is usually assumed. Keep it in mind when choosing a project dataset.</li>
+  </ul>
+</section>
+
+<section class="step" id="l5s4">
+  <h3><span class="n">5.4</span>Equal variance (homoscedasticity)</h3>
+  <p>The residuals should spread about the same amount everywhere, an even rectangle. A <strong>funnel</strong> (tight at one end, fanning out at the other) is <strong>heteroscedasticity</strong>. "Homo" = same, "hetero" = different.</p>
+<pre><code><span class="c"># Scale-location plot: want a roughly flat smooth line</span>
+ggplot(model, aes(x = .fitted, y = sqrt(abs(.stdresid)))) + geom_point() + geom_smooth()
+plot(model, which = 3)
+library(lmtest)
+bptest(model)              <span class="c"># Breusch-Pagan test</span></code></pre>
+  <h4>The Breusch-Pagan test</h4>
+\[H_0: \text{homoscedasticity (equal variance)} \qquad H_a: \text{heteroscedasticity}\]
+  <p>The null is the <strong>good</strong> case, so you want a <strong>large</strong> p-value. By hand: regress the squared residuals on the model's terms, then</p>
+\[\chi^2_{BP} = n R^2_{aux} \sim \chi^2_{k}\]
+  <p>where k is the number of terms in that auxiliary regression. Squaring the residuals measures the spread at each point; if the predictors can explain it, the spread changes with them.</p>
+<pre><code>aux = lm(residuals(model)^2 ~ X2 + I(X2^2) + X4 + X5, data = clerical.df)
+chi = nrow(clerical.df) * summary(aux)$r.squared
+1 - pchisq(chi, df = 4)    <span class="c"># matches bptest()</span></code></pre>
+  <h4>Results</h4>
+  <div class="tbl"><table>
+    <tr><th>Model</th><th>BP p-value</th><th>Decision</th></tr>
+    <tr><td>Advertising cubic</td><td>0.00036 (χ² = 200 × 0.1147 = 22.94, df 5)</td><td>Reject: unequal variance, even though the plots looked fine</td></tr>
+    <tr><td>Advertising, TV up to the 11th power</td><td>0.307</td><td>Fail to reject (a demonstration, not a recommended fix)</td></tr>
+    <tr><td>Clerical, Y ~ X2 + X2² + X4 + X5</td><td>0.152 (confirmed by hand)</td><td>Fail to reject: equal variance holds</td></tr>
+  </table></div>
+  <p><strong>Plots and tests can disagree.</strong> The test can catch subtle problems the eye misses, so look at the plot, then confirm with the test.</p>
+  <h4>Fixing unequal variance</h4>
+  <ol>
+    <li><strong>Transform Y:</strong> log(Y), or √Y for counts. This squashes large values and evens out the spread.</li>
+    <li><strong>Box-Cox</strong> finds a suitable power transformation (later in the course).</li>
+    <li><strong>Weighted least squares</strong>, when you know how the variance changes.</li>
+  </ol>
+  <div class="key"><strong>Remember:</strong> <mark>powers of X fix curves; transforming Y fixes funnels.</mark> For BP, a large p-value is good news.</div>
+</section>
+
+<section class="step" id="l5s5">
+  <h3><span class="n">5.5</span>Normality</h3>
+  <p>The residuals should follow a normal (bell-shaped) distribution. On a <strong>Q-Q plot</strong>, the points should hug the diagonal line.</p>
+  <ul>
+    <li><strong>Bow shape</strong> away from the line: skewness.</li>
+    <li><strong>S shape:</strong> kurtosis (heavy or light tails).</li>
+    <li>A few points far off at the ends: possible outliers.</li>
+  </ul>
+<pre><code>ggplot(df, aes(sample = residuals(model))) + stat_qq() + stat_qq_line(col = "red")
+hist(residuals(model))
+shapiro.test(residuals(model))</code></pre>
+\[H_0: \text{the residuals are normally distributed} \qquad H_a: \text{they are not}\]
+  <p>Again the null is the good case. Advertising (11th-power model): p = 0.313. Clerical quadratic model: <strong>p = 0.856</strong>, and the Q-Q points hug the line, with a slight wobble at the ends that's normal for a small sample.</p>
+  <div class="key"><strong>Remember:</strong> <mark>Shapiro-Wilk tests normality; Breusch-Pagan tests equal variance.</mark> Both: large p-value = assumption holds.</div>
+</section>
+
+<section class="step" id="l5s6">
+  <h3><span class="n">5.6</span>Multicollinearity</h3>
+  <p>Two or more <strong>predictors</strong> are strongly related to <em>each other</em>, so they carry overlapping information (a truck's load and horsepower). Being correlated with Y is good; being correlated with other predictors is the problem.</p>
+  <p><strong>Effects:</strong> coefficients swing wildly depending on what else is in the model, standard errors inflate, and p-values become unreliable.</p>
+\[VIF_j = \frac{1}{1 - R^2_j}\]
+  <p>where \(R^2_j\) comes from regressing predictor j on all the other predictors.</p>
+  <div class="tbl"><table>
+    <tr><th>VIF</th><th>Meaning</th></tr>
+    <tr><td>1</td><td>No collinearity</td></tr>
+    <tr><td>1 to 5</td><td>Moderate; no action needed</td></tr>
+    <tr><td>Above 5 (or 10)</td><td>Serious: coefficients poorly estimated, p-values questionable</td></tr>
+  </table></div>
+<pre><code>library(car);    vif(model)
+library(mctest); imcdiag(model, method = "VIF")   <span class="c"># also flags collinear pairs</span></code></pre>
+  <p><strong>Use main effects only.</strong> X and X², or X and an interaction with X, are related by construction; that collinearity can be ignored (centering the variables leaves their p-values unchanged).</p>
+  <h4>Examples</h4>
+  <ul>
+    <li><strong>Advertising:</strong> TV and radio, r = 0.055, VIF = 1.003.</li>
+    <li><strong>Clerical:</strong> VIFs 1.003 (X2), 1.247 (X4), 1.246 (X5). The X4–X5 correlation of 0.443 shows up: \(1/(1 - 0.443^2) \approx 1.24\).</li>
+  </ul>
+  <h4>Practice 4–5: credit balance</h4>
+  <p>In Balance ~ Income + Rating + Age + Limit + Cards + Student, <strong>Rating (VIF 230.9) and Limit (229.2)</strong> are collinear: banks set limits largely from ratings, so their scatterplot is almost a straight line. Every other VIF was below 3.</p>
+  <p>Dropping Limit brought Rating's VIF down to <strong>2.72</strong>, with every VIF under 3. Cards then had p = 0.267, so it was dropped too (adjusted R² stayed at 0.9499):</p>
+\[\widehat{Balance} = -547.30 - 7.798\,Income + 3.981\,Rating - 0.624\,Age + 417.51\,Student \qquad S_e = 102.9\]
+  <p><strong>Fixes:</strong> drop one of the collinear predictors (its information is redundant), or combine them into one variable (e.g. the average of standardized Limit and Rating as "creditworthiness").</p>
+  <div class="key"><strong>Remember:</strong> <mark>VIF above 5–10 between predictors is a problem; ignore VIF between a term and its own powers or interactions.</mark></div>
+</section>
+
+<section class="step" id="l5s7">
+  <h3><span class="n">5.7</span>Outliers, leverage and influence</h3>
+  <div class="tbl"><table>
+    <tr><th>Idea</th><th>Meaning</th><th>Measure</th></tr>
+    <tr><td>Outlier</td><td>A point far from the rest, often with a big residual (unusual Y)</td><td>Residual plots</td></tr>
+    <tr><td>Leverage</td><td>Unusual X values, far out to the side</td><td>\(h_i\) (<code>hatvalues</code>)</td></tr>
+    <tr><td>Influence</td><td>Removing the point changes the fitted model a lot</td><td>Cook's distance \(D_i\)</td></tr>
+  </table></div>
+  <p><strong>The seesaw:</strong> the regression line balances on the middle of the X values. A point near the middle can't tilt it much. A point far out at the edge (high leverage) <em>can</em>, but only does if it's also off the line. <strong>Influence needs both unusual X and a big residual.</strong> A high-leverage point that sits on the trend just confirms the line.</p>
+  <h4>Cook's distance</h4>
+<pre><code>df[cooks.distance(model) > 0.5, ]      <span class="c"># rows above 0.5</span>
+plot(model, which = 4)                 <span class="c"># bar per row; R labels the 3 largest</span>
+plot(model, which = 5)                 <span class="c"># residuals vs leverage, with Cook's contours</span></code></pre>
+  <ul>
+    <li><strong>Above 1:</strong> influential. <strong>Above 0.5:</strong> worth investigating.</li>
+    <li><strong>4/n</strong> (n = number of rows) or <strong>3 × the mean D</strong>: stricter screening lines. A bar just over them means "take a look", not "delete".</li>
+    <li>The cutoff depends only on n, not on the outliers: it's a fixed line across the plot.</li>
+  </ul>
+  <h4>Leverage</h4>
+<pre><code>lev = hatvalues(model)
+p = length(coef(model))        <span class="c"># number of coefficients, intercept included</span>
+n = nrow(df)
+lev[lev > 2*p/n];  lev[lev > 3*p/n]</code></pre>
+  <p>Leverage is a warning flag: it tells you which points <em>could</em> pull the line; Cook's tells you which ones <em>did</em>. A high-leverage point pulls the line toward itself, so its own residual can look deceptively small.</p>
+  <h4>Clerical (Practice 6), Y ~ X2 + X2² + X4 + X5</h4>
+  <ul>
+    <li>Cook's: the largest bar is row 5 at about 0.07, below 4/52 ≈ 0.077 and far below 0.5. (In the model without X2², row 52 was largest at about 0.08.) No influential points.</li>
+    <li>Leverage (p = 5, n = 52): above 2p/n ≈ 0.19: rows 5, 9, 23, 29, 41, 52; above 3p/n ≈ 0.29: rows <strong>5 (0.38), 9 (0.35), 41 (0.35)</strong>. Unusual X values, but they sit near the line, so they aren't influential.</li>
+  </ul>
+  <h4>What to do with an influential point</h4>
+  <p>Check whether it's a recording or measurement error (e.g. 28 typed as 82); if so, correct or remove it. Otherwise refit without it and see how much the coefficients change, and report both. Don't delete a point just because it's unusual.</p>
+  <div class="key"><strong>Remember:</strong> <mark>leverage = unusual X; influence = unusual X and off the line.</mark> Cook's above 0.5–1 is the real warning.</div>
+</section>
+
+<section class="step" id="l5s8">
+  <h3><span class="n">5.8</span>The order of fixes</h3>
+  <div class="flow">
+    <div><b>Curve first (linearity)</b><span>Add X², then X³ if it still curves. Stop when the residual plot is flat or the new term isn't significant.</span></div>
+    <div><b>Then spread (equal variance)</b><span>Scale-location plot and BP test. If BP fails, transform Y (log, √, Box-Cox) and re-check.</span></div>
+    <div><b>Then normality</b><span>Q-Q plot and Shapiro-Wilk.</span></div>
+    <div><b>Multicollinearity</b><span>VIF on the main effects; drop or combine collinear predictors.</span></div>
+    <div><b>Outliers</b><span>Cook's distance and leverage on the full final model.</span></div>
+  </div>
+  <p>Use the <strong>simplest model that passes the checks</strong>, whatever power that turns out to be. Run linearity, BP, Shapiro and Cook's on the full model you'll actually use; VIF is the one check run on main effects only.</p>
+</section>
+
+<section class="step" id="l5s9">
+  <h3><span class="n">5.9</span>Practice: executive salary, all six checks</h3>
+<pre><code>exec_model = lm(Monthly_Salary ~ Yrs_Exper + I(Yrs_Exper^2) + Yrs_Edu + Bonus_Elig +
+                No_Emp_Super + Cor_Assets + Bonus_Elig:No_Emp_Super, data = exec_sal.df)</code></pre>
+  <p>Every term is significant (experience² p = 1.4 × 10⁻⁵; Bonus × Employees p = 0.0015); adjusted R² = 0.9355, Sₑ = 0.066. Monthly_Salary values around 11 suggest it's already on a log scale.</p>
+  <div class="tbl"><table>
+    <tr><th>Check</th><th>Result</th><th>Verdict</th></tr>
+    <tr><td>1. Linearity</td><td>Smooth line on zero across the middle; the dip at the far left comes from one point (row 40)</td><td>Reasonably met</td></tr>
+    <tr><td>2. Independence</td><td>Not time-ordered data</td><td>Assumed</td></tr>
+    <tr><td>3. Equal variance</td><td>BP p = 0.0072</td><td><strong>Fails</strong></td></tr>
+    <tr><td>4. Normality</td><td>Shapiro p = 0.535</td><td>Met</td></tr>
+    <tr><td>5. Multicollinearity</td><td>VIFs (main effects) 1.00 to 1.10</td><td>None</td></tr>
+    <tr><td>6. Outliers</td><td>Largest Cook's: row 40 ≈ 0.125 (residual −0.163), then 83 ≈ 0.077, 51 ≈ 0.06; 4/n = 0.04</td><td>None influential (all &lt; 0.5); row 40 worth noting</td></tr>
+  </table></div>
+  <p>The remaining issue is unequal variance. Because Y already looks logged, logging again isn't the obvious fix; Box-Cox (later in the course) is the tool for choosing a transformation.</p>
+</section>
+
 <!-- ============ REFERENCE ============ -->
 <div class="part" id="reference">
   <div class="eyebrow">Quick reference</div>
@@ -1404,6 +1613,7 @@ ols_step_both_p(clerical_full, p_enter = 0.05, p_remove = 0.05)</code></pre>
     <div><b>Drop one at a time</b><span>Largest p-value first. Refit after each drop and confirm with <code>anova(reduced, full)</code>. A category's dummies go together.</span></div>
     <div><b>Test interactions</b><span>Fit all two-way interactions, <code>(x1 + x2 + x3)^2</code>, from all predictors unless told otherwise. Drop the largest interaction p-value one at a time; keep main effects that are in kept interactions.</span></div>
     <div><b>Compare models</b><span>Additive vs interaction: adjusted R² (higher is better) and RSE (lower is better). Never plain R².</span></div>
+    <div><b>Check the assumptions</b><span>Linearity, independence, equal variance (BP), normality (Shapiro), multicollinearity (VIF), outliers (Cook's). Fix in that order.</span></div>
     <div><b>Predict</b><span>Prediction interval for one new case, inside the data range.</span></div>
   </div>
 </section>
@@ -1444,6 +1654,15 @@ ols_step_both_p(clerical_full, p_enter = 0.05, p_remove = 0.05)</code></pre>
     <tr><td>Best subsets (leaps: adj R², Cₚ, BIC)</td><td><code>s = summary(leaps::regsubsets(y ~ ., data = df, nvmax = 10))</code>; <code>s$adjr2</code>, <code>s$cp</code>, <code>s$bic</code>, <code>s$which</code></td></tr>
     <tr><td>Selection by AIC</td><td><code>MASS::stepAIC(full, direction = "both")</code></td></tr>
     <tr><td>Scatterplot matrix</td><td><code>GGally::ggpairs(df)</code></td></tr>
+    <tr><td>Residuals / fitted values</td><td><code>residuals(m)</code>, <code>fitted(m)</code></td></tr>
+    <tr><td>Residuals vs fitted (ggplot)</td><td><code>ggplot(m, aes(.fitted, .resid)) + geom_point() + geom_smooth()</code></td></tr>
+    <tr><td>Diagnostic plots (base R)</td><td><code>plot(m, which = 1)</code> resid vs fitted · <code>2</code> Q-Q · <code>3</code> scale-location · <code>4</code> Cook's · <code>5</code> resid vs leverage</td></tr>
+    <tr><td>Breusch-Pagan test</td><td><code>lmtest::bptest(m)</code></td></tr>
+    <tr><td>Normality</td><td><code>shapiro.test(residuals(m))</code>; <code>ggplot(df, aes(sample = residuals(m))) + stat_qq() + stat_qq_line()</code></td></tr>
+    <tr><td>VIF (main effects only)</td><td><code>car::vif(m)</code> or <code>mctest::imcdiag(m, method = "VIF")</code></td></tr>
+    <tr><td>Cook's distance</td><td><code>df[cooks.distance(m) &gt; 0.5, ]</code></td></tr>
+    <tr><td>Leverage</td><td><code>lev = hatvalues(m)</code>; <code>lev[lev &gt; 2*length(coef(m))/nrow(df)]</code></td></tr>
+    <tr><td>Many powers at once</td><td><code>poly(x, 3, raw = TRUE)</code></td></tr>
   </table></div>
 </section>
 
@@ -1474,6 +1693,11 @@ ols_step_both_p(clerical_full, p_enter = 0.05, p_remove = 0.05)</code></pre>
     <tr><td>Mallows' Cₚ (lower; ≈ p + 1)</td><td>\(SSE_p / MSE_{full} + 2(p+1) - n\)</td><td></td></tr>
     <tr><td>AIC (lower)</td><td>\(n\ln(SSE/n) + 2(p+1)\)</td><td></td></tr>
     <tr><td>BIC (lower; heaviest penalty)</td><td>\(n\ln(SSE/n) + (p+1)\ln n\)</td><td></td></tr>
+    <tr><td>Residual</td><td>\(e_i = y_i - \hat y_i\)</td><td></td></tr>
+    <tr><td>Breusch-Pagan</td><td>\(\chi^2 = nR^2_{aux}\) from regressing \(e_i^2\) on the model's terms</td><td>\(k\) = terms in that regression</td></tr>
+    <tr><td>VIF</td><td>\(1/(1 - R^2_j)\); serious above 5–10</td><td></td></tr>
+    <tr><td>Leverage cutoff</td><td>\(h_i &gt; 2p/n\) or \(3p/n\), p = number of coefficients</td><td></td></tr>
+    <tr><td>Cook's distance</td><td>Investigate &gt; 0.5, influential &gt; 1; screening line 4/n</td><td></td></tr>
   </table></div>
 </section>
 
@@ -1526,6 +1750,13 @@ ols_step_both_p(clerical_full, p_enter = 0.05, p_remove = 0.05)</code></pre>
     <div><b>Picking the bigger model for a tiny gain</b><span>Parsimony: when fits are about equal, prefer the simpler model.</span></div>
     <div><b>Forgetting <code>nvmax</code></b><span><code>regsubsets</code> stops at 8 predictors by default.</span></div>
     <div><b>Thinking a negative t gives a different p-value</b><span>Only |t| matters: t = −2.02 and +2.02 give the same p-value.</span></div>
+    <div><b>Plotting residuals against one X in a multiple regression</b><span>Plot against the fitted values; use each X only to find which predictor curves.</span></div>
+    <div><b>Wanting a small p-value from BP or Shapiro</b><span>Their nulls are the good case (equal variance, normality): a large p-value means the assumption holds.</span></div>
+    <div><b>Squaring X to fix a funnel</b><span>Powers of X fix curves; transform Y (log, √, Box-Cox) to fix unequal spread.</span></div>
+    <div><b>Trusting the plot over the test</b><span>The Advertising cubic looked fine but failed BP. Use both.</span></div>
+    <div><b>Running VIF with X² or interactions included</b><span>They're collinear with their main effects by construction. Use main effects only.</span></div>
+    <div><b>Calling every high-leverage point a problem</b><span>Influence needs unusual X <em>and</em> a big residual. Check Cook's distance.</span></div>
+    <div><b>Deleting a point because it's above 4/n</b><span>That's a "take a look" line. Remove only data errors; otherwise compare fits with and without it.</span></div>
   </div>
 </section>
 
@@ -1582,6 +1813,17 @@ ols_step_both_p(clerical_full, p_enter = 0.05, p_remove = 0.05)</code></pre>
     <tr><td>RSS plot labelled "RSE"</td><td>It plots <strong>RSS</strong> (SSE), not RSE</td></tr>
     <tr><td>Bonus × Assets kept with p = 0.087</td><td>Not significant at 0.05; a judgement call, so justify it or drop it</td></tr>
   </table></div>
+  <h4>Lecture 5</h4>
+  <div class="tbl"><table>
+    <tr><th>In the notes</th><th>Should be</th></tr>
+    <tr><td>BP Hₐ: "at least one σᵢ² (the variance … is the same …)"</td><td>At least one σᵢ² <strong>differs</strong>: the variance is <strong>not</strong> the same</td></tr>
+    <tr><td>"The model below involved X_tv⁵"</td><td>The code goes up to <strong>TV¹¹</strong></td></tr>
+    <tr><td>Cubic model "improvements over the model that includes X_tv² and no quadratic term"</td><td>Improvements over the <strong>quadratic</strong> (TV²) model</td></tr>
+    <tr><td>Density histogram labelled "Count"</td><td>The y-axis is <strong>density</strong></td></tr>
+    <tr><td>Leverage rule: p = "the number of predictors"</td><td>p = the number of <strong>coefficients</strong>, intercept included (the code uses <code>length(coef(m))</code>)</td></tr>
+    <tr><td>Cook's distance: "s is the mean square error"</td><td><strong>s²</strong> is the MSE (s is the RSE)</td></tr>
+    <tr><td>Problem 3(c): "transform the predictors" for normality</td><td>Normality problems are usually addressed by transforming <strong>Y</strong></td></tr>
+  </table></div>
 </section>
 
 <section class="step" id="templates">
@@ -1606,7 +1848,7 @@ ols_step_both_p(clerical_full, p_enter = 0.05, p_remove = 0.05)</code></pre>
 </section>
 
 <footer>
-  DATA 603 · University of Calgary · Personal revision notes covering Lecture 1 (Multiple Linear Regression), Lecture 2 (Interaction Models), Lecture 3 (Dummy Variables and Polynomial Models) and Lecture 4 (Model Selection). Written in my own words from the lecture notes by Danika Lipman (based on content by Thuntida Ngamkham, with additions by Jim Stallard) and <em>An Introduction to Statistical Learning</em>.<br>
+  DATA 603 · University of Calgary · Personal revision notes covering Lecture 1 (Multiple Linear Regression), Lecture 2 (Interaction Models), Lecture 3 (Dummy Variables and Polynomial Models), Lecture 4 (Model Selection) and Lecture 5 (Regression Diagnostics). Written in my own words from the lecture notes by Danika Lipman (based on content by Thuntida Ngamkham, with additions by Jim Stallard) and <em>An Introduction to Statistical Learning</em>.<br>
   <a class="totop" href="#start">Back to top</a>
 </footer>
 
